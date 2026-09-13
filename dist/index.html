@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#141613">
+  <meta name="description" content="Take a camera apart. Follow the light. Explore how aperture, shutter, and ISO shape an image in an interactive optical workbench.">
+  <title>Camera Lab — Inside Things</title>
+  <link rel="icon" type="image/svg+xml" href="./icon.svg">
+  <link rel="stylesheet" href="./styles.css">
+  <script type="module" src="./app.mjs"></script>
+</head>
+<body>
+  <a class="skip-link" href="#settings">Skip to camera controls</a>
+  <div class="site-shell">
+    <header class="site-header">
+      <a class="brand" href="./" aria-label="Inside Things, Camera Lab home">
+        <svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true"><path d="M16 2 29 9.5v13L16 30 3 22.5v-13Z M3 9.5 16 17l13-7.5 M16 17v13 M9.5 5.75l13 7.5 M9.5 26.25V13.25l13-7.5" fill="none" stroke="currentColor" stroke-width="1.35"/></svg>
+        <span>INSIDE THINGS<small>EVERYDAY OBJECTS, EXPLAINED.</small></span>
+      </a>
+      <div class="edition"><span class="status-dot"></span> INTERACTIVE FIELD NOTES <span class="edition-number">VOL. 001</span></div>
+    </header>
+
+    <main>
+      <div class="page-intro">
+        <div><p class="eyebrow">THE OPTICAL WORKBENCH <span>/</span> 01</p><h1>Camera lab<span>.</span></h1><p class="intro-copy">Follow the light. Find out what makes the photograph.</p></div>
+        <button class="text-button reset-button" id="reset" type="button"><span aria-hidden="true">↺</span> Reset lab</button>
+      </div>
+
+      <div class="workbench">
+        <section class="anatomy panel" aria-labelledby="anatomy-title">
+          <div class="panel-heading"><h2 id="anatomy-title"><span class="section-number">01</span> Inside the camera</h2><button id="assembly-toggle" class="assembly-toggle" type="button" aria-pressed="true"><span class="toggle-track" aria-hidden="true"><span></span></span> Exploded view</button></div>
+          <div class="diagram-wrap">
+            <div class="diagram-note"><span class="tiny-cross" aria-hidden="true">+</span> SIMPLIFIED MIRRORLESS CROSS-SECTION</div>
+            <svg id="camera-diagram" class="camera-diagram" viewBox="0 0 780 355" role="img" aria-labelledby="diagram-title diagram-description">
+              <title id="diagram-title">Camera components and the path of light</title><desc id="diagram-description">Light enters the lens, passes the aperture and shutter, and reaches the sensor inside the camera body. Select a part with the five buttons below.</desc>
+              <defs>
+                <linearGradient id="glass" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#b1d9d0" stop-opacity=".38"/><stop offset=".45" stop-color="#548d88" stop-opacity=".12"/><stop offset="1" stop-color="#b1d9d0" stop-opacity=".3"/></linearGradient>
+                <linearGradient id="metal" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#454943"/><stop offset=".45" stop-color="#222620"/><stop offset="1" stop-color="#353a32"/></linearGradient>
+                <linearGradient id="sensor-surface" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#e6b768"/><stop offset=".45" stop-color="#be9570"/><stop offset="1" stop-color="#658c83"/></linearGradient>
+                <pattern id="sensor-grid" width="7" height="7" patternUnits="userSpaceOnUse"><path d="M7 0H0V7" fill="none" stroke="#222922" stroke-opacity=".45" stroke-width=".6"/></pattern>
+              </defs>
+              <path class="axis" d="M21 186H753"/>
+              <g class="svg-small"><text x="25" y="65">LIGHT IN</text><path d="M25 77H93m-5-4 5 4-5 4"/><text x="594" y="65">IMAGE FORMS</text></g>
+              <g id="part-body" class="diagram-part" data-part="body" style="--x:680px">
+                <path class="body-back" d="M-39 81 44 61 68 80v196l-24 16-83-12Z"/><path class="body-front" d="M-66 100-39 81v199l-27-20Z"/>
+                <path d="M-27 101 34 87 48 99v157l-15 12-60-8Z" fill="#171c17" stroke="#50594c"/>
+                <path d="M47 106v127m8-131v134m-1 30-15 10M-28 79v-9l28-7 10 5v10" fill="none" stroke="#56604f"/>
+                <circle cx="55" cy="86" r="3" fill="#d0ad6d"/><path class="leader" d="M14 286v27h24"/><text class="part-label" x="42" y="317">05</text>
+              </g>
+              <g id="light-rays" class="light-rays" aria-hidden="true"><path id="light-fill" fill="#e6b660" fill-opacity=".06"/><path id="ray-top"/><path id="ray-mid"/><path id="ray-bottom"/></g>
+              <g id="part-lens" class="diagram-part is-selected" data-part="lens" style="--x:130px">
+                <path d="M0 103H76a31 83 0 0 1 0 166H0Z" fill="url(#metal)" stroke="#63695e"/>
+                <ellipse cx="76" cy="186" rx="28" ry="82" fill="#252d27" stroke="#737c6c"/>
+                <path d="M20 105v161m8-159v158m8-158v158m8-158v158m8-158v158" fill="none" stroke="#757b68" stroke-opacity=".25"/>
+                <ellipse class="part-outline" cx="0" cy="186" rx="35" ry="85" fill="#222922" stroke="#778372" stroke-width="1.5"/>
+                <ellipse cx="0" cy="186" rx="27" ry="74" fill="url(#glass)" stroke="#aec6b1" stroke-opacity=".65"/>
+                <path d="M-11 135q-18 39-1 85M8 122q18 54 6 105" fill="none" stroke="#bcd8c9" stroke-opacity=".45"/>
+                <ellipse cx="58" cy="186" rx="12" ry="64" fill="url(#glass)" stroke="#92beb1" stroke-opacity=".35"/>
+                <path class="leader" d="M0 278v34h29"/><text class="part-label" x="34" y="317">01</text>
+              </g>
+              <g id="part-aperture" class="diagram-part" data-part="aperture" style="--x:326px">
+                <ellipse class="part-outline" cy="186" rx="31" ry="79" fill="url(#metal)" stroke="#778372"/>
+                <ellipse cy="186" rx="25" ry="68" fill="#222721" stroke="#545e4d"/>
+                <path d="m-2 118 20 55-12 66m-25-109 29 31 7 74m-41-64 31-18 10 74m-35-18 31-14 4 48m-10 11-14-47 3-62" fill="none" stroke="#899078" stroke-opacity=".65"/>
+                <ellipse id="aperture-hole" cy="186" rx="9" ry="22" fill="#efc16e" fill-opacity=".38" stroke="#efc16e"/>
+                <path class="leader" d="M0 274v38h22"/><text class="part-label" x="27" y="317">02</text>
+              </g>
+              <g id="part-shutter" class="diagram-part" data-part="shutter" style="--x:473px">
+                <path class="part-outline" d="m-23 114 53-16v174l-53 16Z" fill="#30372d" stroke="#86907d"/>
+                <path d="m-15 126 37-11v144l-37 11Z" fill="#171c17" stroke="#525f4a"/>
+                <g id="shutter-blades" fill="none" stroke="#68745f"><path d="m-14 142 35-11m-35 29 35-11m-35 29 35-11m-35 29 35-11m-35 29 35-11m-35 29 35-11"/></g>
+                <path id="shutter-gap" d="m-14 196 35-11" stroke="#edc579" stroke-width="7"/>
+                <path class="leader" d="M4 290v22h21"/><text class="part-label" x="30" y="317">03</text>
+              </g>
+              <g id="part-sensor" class="diagram-part" data-part="sensor" style="--x:586px">
+                <path class="part-outline" d="m-20 123 51-16v159l-51 16Z" fill="#384137" stroke="#849c82"/>
+                <path d="m-11 134 33-10v130l-33 10Z" fill="url(#sensor-surface)" stroke="#edc579"/>
+                <path d="m-11 134 33-10v130l-33 10Z" fill="url(#sensor-grid)"/>
+                <path d="m-26 147-9 3m9 14-9 3m9 14-9 3m9 14-9 3m9 14-9 3m9 14-9 3m64-99 8-2m-8 19 8-2m-8 19 8-2m-8 19 8-2m-8 19 8-2m-8 19 8-2" fill="none" stroke="#9d9872"/>
+                <path class="leader" d="M5 284v28h18"/><text class="part-label" x="28" y="317">04</text>
+              </g>
+            </svg>
+            <div class="diagram-footer"><span><span class="amber-line"></span> PATH OF LIGHT</span><span id="assembly-status">PARTS SEPARATED FOR EXPLORATION</span></div>
+          </div>
+          <div class="part-navigation" role="group" aria-label="Select a camera component">
+            <button type="button" data-select-part="lens" aria-pressed="true"><span>01</span>Lens</button>
+            <button type="button" data-select-part="aperture" aria-pressed="false"><span>02</span>Aperture</button>
+            <button type="button" data-select-part="shutter" aria-pressed="false"><span>03</span>Shutter</button>
+            <button type="button" data-select-part="sensor" aria-pressed="false"><span>04</span>Sensor</button>
+            <button type="button" data-select-part="body" aria-pressed="false"><span>05</span>Body</button>
+          </div>
+          <div class="part-detail" aria-live="polite" aria-atomic="true"><div id="part-detail-number" class="detail-number">01</div><div><div class="detail-title-row"><h3 id="part-name">The lens</h3><span class="detail-tag" id="part-function">FOCUS</span></div><p id="part-description">Curved glass bends incoming light to form an image on the sensor. This lab holds focus on the moving amber target.</p><p class="part-connection" id="part-connection">Focus stays fixed here. Change the aperture to explore how much of the scene appears sharp.</p></div></div>
+        </section>
+
+        <section class="sensor-panel panel" aria-labelledby="sensor-title">
+          <div class="panel-heading"><h2 id="sensor-title"><span class="section-number">02</span> What the sensor sees</h2><span class="live-label"><span class="status-dot"></span> LIVE</span></div>
+          <div class="preview-container">
+            <div class="preview-topline"><span>OPTICAL TEST SCENE</span><span>50 MM · FIXED FOCUS</span></div>
+            <svg id="sensor-preview" viewBox="0 0 480 290" role="img" aria-labelledby="preview-title preview-desc">
+              <title id="preview-title">Illustrative camera output</title><desc id="preview-desc">An amber moving target at the focus plane and a distant striped test target. Camera settings change brightness, background softness, motion trails, and grain.</desc>
+              <defs>
+                <linearGradient id="scene-bg" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#38514e"/><stop offset="1" stop-color="#203a37"/></linearGradient>
+                <linearGradient id="scene-floor" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#53655d"/><stop offset="1" stop-color="#253b35"/></linearGradient>
+                <linearGradient id="disc-shade" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ffe7a9"/><stop offset=".6" stop-color="#e5b368"/><stop offset="1" stop-color="#bd7541"/></linearGradient>
+                <filter id="background-softness" x="-35%" y="-35%" width="170%" height="170%"><feGaussianBlur id="background-blur" stdDeviation="1.65"/></filter>
+                <filter id="scene-brightness" color-interpolation-filters="sRGB"><feComponentTransfer><feFuncR id="brightness-r" type="linear" slope="1"/><feFuncG id="brightness-g" type="linear" slope="1"/><feFuncB id="brightness-b" type="linear" slope="1"/></feComponentTransfer></filter>
+                <clipPath id="preview-clip"><rect width="480" height="290" rx="2"/></clipPath>
+                <pattern id="resolution-bars" width="10" height="10" patternUnits="userSpaceOnUse"><rect width="10" height="10" fill="#d6ded1"/><rect width="5" height="10" fill="#193531"/></pattern>
+                <g id="moving-disc"><circle r="56" fill="url(#disc-shade)"/><circle r="43" fill="none" stroke="#6c5030" stroke-width="1.1"/><path d="M0-55v110M-55 0H55" stroke="#6c5030" stroke-width="1"/><circle r="23" fill="#29443e"/><circle r="12" fill="#e2b46c"/><circle r="3" fill="#29443e"/><path d="m18-38 7-15m15 24 13-7m-85 60-12 9" stroke="#fff1c6" stroke-width="3"/></g>
+              </defs>
+              <g clip-path="url(#preview-clip)">
+                <g filter="url(#scene-brightness)">
+                  <rect width="480" height="290" fill="url(#scene-bg)"/>
+                  <g filter="url(#background-softness)"><path d="M0 48H480M0 87H480M0 126H480" stroke="#94a69a" stroke-opacity=".13"/><path d="M37 0v176M103 0v176M169 0v176M235 0v176M301 0v176M367 0v176M433 0v176" stroke="#94a69a" stroke-opacity=".13"/>
+                    <rect x="315" y="57" width="108" height="92" rx="2" fill="#9aaea0"/><rect x="325" y="67" width="88" height="72" fill="url(#resolution-bars)"/><circle cx="369" cy="103" r="22" fill="#d6ded1"/><circle cx="369" cy="103" r="15" fill="none" stroke="#23443a" stroke-width="2"/><path d="M349 103h40m-20-20v40" stroke="#23443a" stroke-width="1"/><path d="M352 149v29m34-29v29" stroke="#9aaea0" stroke-width="3"/>
+                  </g>
+                  <path d="M0 177H480V290H0Z" fill="url(#scene-floor)"/>
+                  <path d="M0 213H480M0 253H480M90 177 13 290m130-113-40 113m94-113-7 113m61-113 31 113m23-113 71 113m-17-113 112 113" stroke="#a6b5a2" stroke-opacity=".18"/>
+                  <ellipse cx="210" cy="227" rx="74" ry="12" fill="#0c2520" fill-opacity=".45"/>
+                  <g id="motion-trails"><use href="#moving-disc" id="trail-3" x="176" y="156" opacity=".1"/><use href="#moving-disc" id="trail-2" x="187" y="156" opacity=".15"/><use href="#moving-disc" id="trail-1" x="198" y="156" opacity=".22"/></g>
+                  <path d="M207 211v12" stroke="#b1bbaa" stroke-width="3"/><use href="#moving-disc" x="210" y="156"/>
+                  <g id="grain" opacity=".065"></g>
+                </g>
+                <g fill="none" stroke="#e5e9d9" stroke-opacity=".6" stroke-width="1"><path d="M182 124h-7v10m63-10h7v10m0 44v10h-7m-56 0h-7v-10"/><path d="M14 25V14h11m430 0h11v11M14 265v11h11m430 0h11v-11"/></g>
+                <g class="scene-labels"><text x="270" y="40">DISTANT TARGET</text><text x="132" y="259">MOVING TARGET</text><path d="M345 255h26m-5-4 5 4-5 4" fill="none" stroke="currentColor"/><text x="18" y="40">∞</text><text x="18" y="259">→</text></g>
+              </g>
+            </svg>
+            <div class="preview-bottomline"><span><span class="focus-bracket" aria-hidden="true">⌗</span> FOCUS LOCKED ON AMBER TARGET</span><span>ILLUSTRATION</span></div>
+          </div>
+          <div class="brightness-section"><div class="brightness-heading"><span>Brightness vs. reference</span><output id="brightness-value">0.0 stops</output></div><div class="brightness-meter" id="brightness-meter" role="meter" aria-label="Brightness compared with reference, stops" aria-valuemin="-5" aria-valuemax="5" aria-valuenow="0"><span class="balanced-zone"></span><span class="meter-tick tick-one"></span><span class="meter-tick tick-two"></span><span class="meter-tick tick-three"></span><span class="meter-tick tick-four"></span><span class="meter-tick tick-five"></span><span id="meter-needle"></span></div><div class="meter-labels"><span>−5 DARKER</span><span id="brightness-status">BALANCED</span><span>BRIGHTER +5</span></div></div>
+          <dl class="preview-metrics"><div><dt>Motion</dt><dd id="motion-value">Visible trail</dd></div><div><dt>Background</dt><dd id="depth-value">Soft</dd></div><div><dt>Grain</dt><dd id="grain-value">Low</dd></div></dl>
+          <p class="preview-caveat">A simulated test target. Brightness, blur, and grain illustrate trade-offs; they are not calibrated camera predictions.</p>
+        </section>
+      </div>
+
+      <section class="settings-panel panel" id="settings" aria-labelledby="settings-title">
+        <div class="settings-header"><h2 id="settings-title"><span class="section-number">03</span> Shape the image</h2><p>Change one setting. Watch what follows.</p></div>
+        <div class="settings-grid">
+          <fieldset class="setting" data-setting="aperture"><legend>Aperture <span>THE OPENING</span></legend><div class="setting-value-row"><output id="aperture-value" for="aperture">f/4</output><svg viewBox="0 0 44 44" width="38" height="38" aria-hidden="true"><circle cx="22" cy="22" r="17" fill="none" stroke="currentColor"/><path d="m22 5 13 24-13 10L7 17Z M22 5 9 28h27" fill="none" stroke="currentColor"/><circle id="control-aperture-hole" cx="22" cy="22" r="6" fill="#d5b378" stroke="#d5b378"/></svg></div><label class="sr-only" for="aperture">Aperture, f-number</label><input id="aperture" type="range" min="0" max="6" step="1" value="2" aria-valuetext="f/4"><div class="setting-scale"><span>f/1.8 <small>WIDE</small></span><span>f/16 <small>NARROW</small></span></div><p>Opening width changes light and depth of field.</p></fieldset>
+          <fieldset class="setting" data-setting="shutter"><legend>Shutter speed <span>THE DURATION</span></legend><div class="setting-value-row"><output id="shutter-value" for="shutter">1/125 <small>s</small></output><svg viewBox="0 0 44 44" width="38" height="38" aria-hidden="true"><circle cx="22" cy="24" r="15" fill="none" stroke="currentColor"/><path d="M22 10V5m-5 0h10m-5 19 8-9" fill="none" stroke="currentColor"/><circle cx="22" cy="24" r="2" fill="currentColor"/></svg></div><label class="sr-only" for="shutter">Shutter speed, exposure duration</label><input id="shutter" type="range" min="0" max="6" step="1" value="3" aria-valuetext="1/125 second"><div class="setting-scale"><span>1/15 <small>SLOW</small></span><span>1/1000 <small>FAST</small></span></div><p>Time collecting light changes brightness and motion blur.</p></fieldset>
+          <fieldset class="setting" data-setting="iso"><legend>ISO <span>THE SIGNAL</span></legend><div class="setting-value-row"><output id="iso-value" for="iso">400</output><svg viewBox="0 0 44 44" width="38" height="38" aria-hidden="true"><path d="M5 35V24m8 11V17m9 18V9m9 26V17m8 18V4" fill="none" stroke="currentColor" stroke-width="2"/></svg></div><label class="sr-only" for="iso">ISO signal amplification</label><input id="iso" type="range" min="0" max="5" step="1" value="2" aria-valuetext="ISO 400"><div class="setting-scale"><span>100 <small>LOW</small></span><span>3200 <small>HIGH</small></span></div><p>Brightens the captured signal. It adds no incoming light.</p></fieldset>
+        </div>
+        <div class="light-equation"><span class="equation-label">AT THE SENSOR</span><span><strong id="captured-light">1.00×</strong> captured light <span class="equation-symbol">×</span> <strong id="iso-gain">1.00×</strong> ISO factor <span class="equation-symbol">=</span> <strong class="amber-text" id="image-brightness">1.00×</strong> image brightness</span><span class="reference-label">REF. f/4 · 1/125 s · ISO 400</span></div>
+      </section>
+
+      <section class="challenge-panel panel" aria-labelledby="challenge-title">
+        <div class="challenge-intro"><p class="eyebrow">PUT IT INTO PRACTICE</p><h2 id="challenge-title">A little light work.</h2><p>Three experiments. More than one solution.</p><div class="challenge-progress"><span id="progress-count">0 / 3</span> EXPERIMENTS COMPLETED<span class="progress-dots" aria-hidden="true"><i></i><i></i><i></i></span></div></div>
+        <div class="challenge-workspace"><div class="challenge-tabs" role="group" aria-label="Choose an experiment"><button type="button" data-challenge="freeze" aria-pressed="true"><span>01</span> Freeze motion</button><button type="button" data-challenge="isolate" aria-pressed="false"><span>02</span> Isolate a subject</button><button type="button" data-challenge="depth" aria-pressed="false"><span>03</span> Keep depth sharp</button></div><div class="challenge-body"><div><h3 id="experiment-title">Freeze the motion</h3><p id="experiment-description">The amber target is moving. Find a shutter time that holds its edge, then recover a balanced image.</p></div><div class="goal-list"><span id="technique-goal"><span class="goal-dot" aria-hidden="true"></span><span id="technique-goal-text">Shutter 1/500 s or faster</span></span><span id="brightness-goal"><span class="goal-dot" aria-hidden="true"></span>Brightness within ±0.5 stops</span></div><div class="challenge-actions"><button class="primary-button" id="check-challenge" type="button">Check my settings <span aria-hidden="true">↗</span></button><button class="text-button" id="hint-toggle" type="button" aria-expanded="false" aria-controls="challenge-hint">Give me a hint</button><span id="challenge-current" class="current-snapshot">f/4 · 1/125 s · ISO 400</span></div><p id="challenge-hint" class="challenge-hint" hidden></p><p id="challenge-feedback" class="challenge-feedback" hidden></p></div></div>
+      </section>
+
+      <details class="reference-disclosure"><summary>Behind the simulation <span>MODEL & REFERENCES</span><span class="disclosure-plus" aria-hidden="true">+</span></summary><div class="reference-content"><div><h3>A teaching model, with the edges visible.</h3><p>The scene uses a fixed subject, focus distance, and focal length. Captured light scales with exposure time ÷ f-number². Displayed brightness also scales with ISO relative to the reference settings. The meter shows the exact model ratio; the preview compresses its range so changes stay legible.</p><p>Depth blur, motion trails, and grain are illustrative. Grain depends on a simplified proxy for captured light and ISO: high ISO does not inevitably mean a noisier final image. Real results also depend on lighting, movement, sensor design, processing, diffraction, and focus distance. The cutaway is an explanatory diagram, not to scale; the shutter slit is symbolic.</p></div><div><h3>Keep exploring</h3><ul><li><a href="https://www.nikonusa.com/learn-and-explore/c/tips-and-techniques/understanding-maximum-aperture" target="_blank" rel="noopener noreferrer">Nikon · Understanding aperture <span aria-hidden="true">↗</span></a></li><li><a href="https://www.nikonusa.com/learn-and-explore/c/tips-and-techniques/a-basic-look-at-the-basics-of-exposure" target="_blank" rel="noopener noreferrer">Nikon · The basics of exposure <span aria-hidden="true">↗</span></a></li><li><a href="https://blog.adobe.com/en/publish/2023/04/20/lowdown-using-high-iso-settings-in-photography" target="_blank" rel="noopener noreferrer">Adobe · Using high ISO <span aria-hidden="true">↗</span></a></li><li><a href="https://global.canon/en/technology/canon-tech/tech/dslr/" target="_blank" rel="noopener noreferrer">Canon · Camera technology <span aria-hidden="true">↗</span></a></li></ul></div></div></details>
+    </main>
+    <footer><span>INSIDE THINGS <span class="footer-slash">/</span> A CLOSER LOOK AT THE EVERYDAY.</span><span>001 — CAMERA</span></footer>
+  </div>
+  <div id="lab-announcement" class="sr-only" role="status"></div>
+  <noscript><div class="noscript-note">Enable JavaScript to adjust the camera settings and explore the experiments. The diagram and reference notes are still available.</div></noscript>
+</body>
+</html>
