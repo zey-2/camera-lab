@@ -12,7 +12,7 @@ import { getCameraConfig } from './camera-config.mjs';
 /** @typedef {ReturnType<typeof import('./model.mjs').computeExposure>} Exposure */
 /** @typedef {ReturnType<typeof import('./model.mjs').evaluateChallenge>} Evaluation */
 /** @typedef {{state:LabState, exposure:Exposure, challenge:Evaluation}} Snapshot */
-/** @typedef {{type:'set-settings',patch:Partial<Settings>,selectControl?:Control}|{type:'select-part',part:PartId,source:'list'|'diagram'}|{type:'set-type',cameraType:CameraType}|{type:'set-view',viewMode:ViewMode}|{type:'set-control',control:Control}|{type:'choose-challenge',id:ChallengeId}|{type:'check-challenge'}|{type:'reset-camera'}} LabAction */
+/** @typedef {{type:'set-settings',patch:Partial<Settings>,selectControl?:Control}|{type:'select-part',part:PartId,source:'list'|'diagram'}|{type:'set-type',cameraType:CameraType}|{type:'set-view',viewMode:ViewMode}|{type:'set-phase',phase:Phase}|{type:'set-control',control:Control}|{type:'choose-challenge',id:ChallengeId}|{type:'check-challenge'}|{type:'reset-camera'}} LabAction */
 const controls = ['aperture','shutter','iso'];
 const views = ['assembled','cutaway','exploded'];
 const controlParts = {aperture:'aperture',shutter:'shutter',iso:'sensor'};
@@ -104,6 +104,13 @@ export function transition(current, action) {
     case 'set-control':
       oneOf(action.control, controls, 'control');
       state.activeControl = action.control;
+      break;
+    case 'set-phase':
+      oneOf(action.phase, ['viewing','exposure'], 'phase');
+      if (action.phase === 'exposure' && state.viewMode !== 'cutaway') {
+        throw new RangeError('Exposure phase requires cutaway');
+      }
+      state.exposurePhase = action.phase;
       break;
     case 'select-part': {
       const config = getCameraConfig(state.cameraType);

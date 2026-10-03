@@ -4,6 +4,39 @@ import {createInitialState,computeExposure,evaluateChallenge,APERTURES,SHUTTERS,
 import {createSnapshot,transition} from '../dist/state.mjs';
 import {getCameraConfig} from '../dist/camera-config.mjs';
 const initial=()=>createSnapshot(createInitialState());
+
+test('public phase action permits exposure only in cutaway', () => {
+  const cutaway = transition(initial(), {type:'set-view', viewMode:'cutaway'});
+  const exposure = transition(cutaway, {type:'set-phase', phase:'exposure'});
+  assert.equal(exposure.state.exposurePhase, 'exposure');
+  assert.strictEqual(exposure.exposure, cutaway.exposure);
+  assert.equal(transition(exposure, {type:'set-phase', phase:'viewing'}).state.exposurePhase, 'viewing');
+  assert.equal(transition(initial(), {type:'set-phase', phase:'viewing'}).state.exposurePhase, 'viewing');
+  for (const viewMode of ['assembled','exploded']) {
+    const viewed = transition(initial(), {type:'set-view', viewMode});
+    assert.throws(() => transition(viewed, {type:'set-phase', phase:'exposure'}), /cutaway/);
+  }
+  assert.throws(() => transition(cutaway, {type:'set-phase', phase:'invalid'}), /phase/);
+});
+
+test('settings type view and reset changes leave exposure in viewing', () => {
+  const exposure = transition(transition(initial(), {type:'set-view',viewMode:'cutaway'}), {type:'set-phase',phase:'exposure'});
+  for (const action of [
+    {type:'set-settings',patch:{iso:800}},
+    {type:'set-type',cameraType:'dslr'},
+    {type:'set-view',viewMode:'exploded'},
+    {type:'reset-camera'}
+  ]) assert.equal(transition(exposure, action).state.exposurePhase, 'viewing');
+  assert.equal(exposure.state.exposurePhase, 'exposure');
+});
+
+test('invalid settings preserve the original exposure snapshot', () => {
+  const exposure = transition(transition(initial(), {type:'set-view',viewMode:'cutaway'}), {type:'set-phase',phase:'exposure'});
+  const before = structuredClone(exposure);
+  assert.throws(() => transition(exposure, {type:'set-settings',patch:{iso:800,shutter:0}}));
+  assert.deepEqual(exposure, before);
+  assert.equal(exposure.state.exposurePhase, 'exposure');
+});
 test('initial defaults are assembled mirrorless and fresh',()=>{
  const s=initial(); assert.deepEqual(s.state,{settings:{aperture:4,shutter:125,iso:400},selectedPart:'lens',cameraType:'mirrorless',viewMode:'assembled',activeControl:'aperture',exposurePhase:'viewing',challengeId:'freeze',feedback:null,completed:[]}); assert.equal(s.exposure.brightnessRatio,1);
  assert.notStrictEqual(s.state.settings,initial().state.settings); assert.notStrictEqual(s.state.completed,initial().state.completed);

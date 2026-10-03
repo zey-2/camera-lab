@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node server.mjs",
     "test": "node --test tests/*.test.mjs",
-    "check": "node --check dist/model.mjs && node --check dist/state.mjs && node --check dist/camera-config.mjs && node --check dist/camera.mjs && node --check dist/renderers.mjs && node --check dist/app.mjs && node --check server.mjs"
+    "check": "node --check dist/model.mjs && node --check dist/state.mjs && node --check dist/camera-config.mjs && node --check dist/camera.mjs && node --check dist/playback.mjs && node --check dist/renderers.mjs && node --check dist/app.mjs && node --check server.mjs"
   },
   "engines": { "node": ">=20" }
 }

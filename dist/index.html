@@ -45,6 +45,11 @@
             <div id="camera-phase-label" class="camera-phase-label" hidden></div>
             <div id="camera-path-legend" class="camera-path-legend" hidden><span><i class="legend-light" aria-hidden="true"></i>Light</span><span id="signal-legend"><i class="legend-signal" aria-hidden="true"></i>Electronic signal</span></div>
             <div id="camera-capture-cues" class="camera-capture-cues" hidden><span>Preview of selected capture opening</span><span>Shutter <output id="camera-shutter-value">1/125 s</output> · symbolic timing <svg width="44" height="12" aria-hidden="true"><path d="M2 10H42" stroke="currentColor"/><rect id="shutter-timing-cue" x="2" y="2" height="5" width="23" fill="currentColor"/></svg></span></div>
+            <div id="exposure-playback" class="exposure-playback" hidden>
+              <button id="play-exposure" type="button" aria-describedby="playback-timing">Play exposure</button>
+              <div id="static-phases" class="static-phases" role="group" aria-label="Exposure phase" hidden><button id="phase-viewing" type="button" aria-pressed="true">Viewing</button><button id="phase-exposure" type="button" aria-pressed="false">Exposure</button></div>
+              <p id="playback-timing" class="playback-timing"><span>Timing slowed for learning</span><span>Actual shutter: <output id="playback-shutter-value">1/125 s</output></span></p>
+            </div>
           </div>
 
         </section>

@@ -3,6 +3,39 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {getCameraConfig} from '../dist/camera-config.mjs';
 
+test('cutaway playback controls show timed or static phase choices and actual shutter', async () => {
+  const {renderInterface} = await import('../dist/renderers.mjs');
+  const {createSnapshot,transition} = await import('../dist/state.mjs');
+  const {createInitialState} = await import('../dist/model.mjs');
+  const nodes = new Map();
+  const root = {querySelector(selector) {
+    if (!nodes.has(selector)) nodes.set(selector, {attributes:{}, style:{setProperty(){}},classList:{toggle(){}},setAttribute(key,value){this.attributes[key]=value;}});
+    return nodes.get(selector);
+  },querySelectorAll(){return [];}};
+  const initial = createSnapshot(createInitialState());
+  renderInterface(root, initial, {compact:false,reducedMotion:false});
+  assert.equal(nodes.get('#exposure-playback').hidden, true);
+  const cutaway = transition(initial, {type:'set-view',viewMode:'cutaway'});
+  renderInterface(root, cutaway, {compact:false,reducedMotion:false});
+  assert.equal(nodes.get('#exposure-playback').hidden, false);
+  assert.equal(nodes.get('#play-exposure').hidden, false);
+  assert.equal(nodes.get('#static-phases').hidden, true);
+  assert.equal(nodes.get('#playback-shutter-value').textContent, '1/125 s');
+  const changed = transition(cutaway, {type:'set-settings',patch:{shutter:500}});
+  renderInterface(root, changed, {compact:true,reducedMotion:true});
+  assert.equal(nodes.get('#play-exposure').hidden, true);
+  assert.equal(nodes.get('#static-phases').hidden, false);
+  assert.equal(nodes.get('#phase-viewing').attributes['aria-pressed'], 'true');
+  assert.equal(nodes.get('#phase-exposure').attributes['aria-pressed'], 'false');
+  assert.equal(nodes.get('#playback-shutter-value').textContent, '1/500 s');
+  renderInterface(root, createSnapshot({...changed.state,exposurePhase:'exposure'}), {compact:true,reducedMotion:true});
+  assert.equal(nodes.get('#phase-viewing').attributes['aria-pressed'], 'false');
+  assert.equal(nodes.get('#phase-exposure').attributes['aria-pressed'], 'true');
+  const html = await readFile(new URL('../dist/index.html',import.meta.url),'utf8');
+  for (const id of ['exposure-playback','play-exposure','static-phases','phase-viewing','phase-exposure','playback-shutter-value']) assert.match(html,new RegExp(`id="${id}"`));
+  assert.ok(html.includes('Timing slowed for learning'));
+});
+
 test('every camera component has an equivalent named selection button', async () => {
   const html=await readFile(new URL('../dist/index.html',import.meta.url),'utf8');
   for(const type of ['mirrorless','dslr']) for(const id of getCameraConfig(type).partIds) {

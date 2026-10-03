@@ -3,12 +3,16 @@ import { createSnapshot, transition } from './state.mjs';
 import { renderInterface, createGrain } from './renderers.mjs';
 import { describeCamera, renderCamera } from './camera.mjs';
 import { getCameraConfig } from './camera-config.mjs';
+import { createPlayback } from './playback.mjs';
 const $ = selector => document.querySelector(selector);
 const $$ = selector => [...document.querySelectorAll(selector)];
 const optionLists = {aperture:APERTURES, shutter:SHUTTERS, iso:ISOS};
 let committed = createSnapshot(createInitialState());
 let announcementTimer;
 const compactQuery = matchMedia('(max-width: 899px)');
+const reducedMotionQuery = matchMedia('(prefers-reduced-motion: reduce)');
+const playback = createPlayback({onPhase:phase => dispatch({type:'set-phase', phase})});
+const playbackInterruptions = new Set(['set-settings','set-type','set-view','reset-camera']);
 function announce(message) {
   clearTimeout(announcementTimer);
   $('#lab-announcement').textContent = '';
@@ -16,6 +20,10 @@ function announce(message) {
 }
 
 function renderDiagram(snapshot) { renderCamera(document, describeCamera(snapshot)); }
+function renderSnapshot(snapshot) {
+  renderInterface(document, snapshot, {compact:compactQuery.matches, reducedMotion:reducedMotionQuery.matches});
+  renderDiagram(snapshot);
+}
 
 /** @returns {import('./state.mjs').Snapshot} The immutable committed snapshot. */
 function readSnapshot() { return committed; }
@@ -25,9 +33,9 @@ function readSnapshot() { return committed; }
  */
 function dispatch(action) {
   const candidate = transition(readSnapshot(), action);
+  if (playbackInterruptions.has(action.type)) playback.cancel();
   committed = candidate;
-  renderInterface(document, candidate, {compact:compactQuery.matches});
-  renderDiagram(candidate);
+  renderSnapshot(candidate);
   return candidate;
 }
 function closeHint() {
@@ -71,6 +79,21 @@ $('#open-cutaway').addEventListener('click',()=>{
   dispatch({type:'set-view',viewMode:'cutaway'});
   $('[data-view-mode="cutaway"]').focus();
 });
+$('#play-exposure').addEventListener('click', () => {
+  if (readSnapshot().state.viewMode === 'cutaway' && !reducedMotionQuery.matches) playback.play();
+});
+for (const phase of ['viewing','exposure']) $('#phase-' + phase).addEventListener('click', () => {
+  if (readSnapshot().state.viewMode !== 'cutaway' || !reducedMotionQuery.matches) return;
+  playback.cancel();
+  dispatch({type:'set-phase', phase});
+});
+reducedMotionQuery.addEventListener('change', () => {
+  const focused = document.activeElement;
+  playback.cancel();
+  dispatch({type:'set-phase', phase:'viewing'});
+  if (focused.id === 'play-exposure' && reducedMotionQuery.matches) $('#phase-viewing').focus();
+  else if (['phase-viewing','phase-exposure'].includes(focused.id) && !reducedMotionQuery.matches) $('#play-exposure').focus();
+});
 for (const button of $$('[data-challenge]')) button.addEventListener('click', () => {
   dispatch({type:'choose-challenge', id:button.dataset.challenge});
   closeHint();
@@ -108,14 +131,13 @@ compactQuery.addEventListener('change', () => {
   if (compactQuery.matches && controlKeys.includes(focused.id)) {
     dispatch({type:'set-control', control:focused.id});
   } else {
-    renderInterface(document, readSnapshot(), {compact:compactQuery.matches});
+    renderSnapshot(readSnapshot());
     if (!compactQuery.matches && focused.dataset.control) $('#' + focused.dataset.control).focus();
   }
 });
 for (const link of $$('a[href="#settings"]')) link.addEventListener('click', () => $('#settings').focus({preventScroll:true}));
 createGrain(document);
-renderInterface(document, readSnapshot(), {compact:compactQuery.matches});
-renderDiagram(readSnapshot());
+renderSnapshot(readSnapshot());
 
 // Progressive WebMCP support. Registration failures never gate the instrument.
 const modelContext = document.modelContext ?? navigator.modelContext;
@@ -154,5 +176,12 @@ function registerCameraTools() {
   }
 }
 registerCameraTools();
-addEventListener('pagehide', () => toolLifecycle?.abort());
-addEventListener('pageshow', () => { if (toolLifecycle?.signal.aborted) registerCameraTools(); });
+addEventListener('pagehide', () => {
+  playback.cancel();
+  committed = transition(readSnapshot(), {type:'set-phase', phase:'viewing'});
+  toolLifecycle?.abort();
+});
+addEventListener('pageshow', () => {
+  renderSnapshot(readSnapshot());
+  if (toolLifecycle?.signal.aborted) registerCameraTools();
+});

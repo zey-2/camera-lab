@@ -67,6 +67,18 @@ function renderControls(root, snapshot, {compact}) {
   $('#image-brightness').textContent = ratio(model.brightnessRatio);
 }
 
+/** Keep the same mechanism explorable with or without motion. */
+function renderPlayback(root, {state}, {reducedMotion = false}) {
+  const $ = selector => root.querySelector(selector);
+  $('#exposure-playback').hidden = state.viewMode !== 'cutaway';
+  $('#play-exposure').hidden = reducedMotion;
+  $('#static-phases').hidden = !reducedMotion;
+  for (const phase of ['viewing','exposure']) {
+    $('#phase-' + phase).setAttribute('aria-pressed', String(state.exposurePhase === phase));
+  }
+  $('#playback-shutter-value').textContent = `1/${state.settings.shutter} s`;
+}
+
 /** Update stable DOM nodes from committed values.
  * @param {Document|Element} root
  * @param {Snapshot} snapshot
@@ -134,11 +146,12 @@ function renderChallenge(root, snapshot) {
 /** Render all interface surfaces from one snapshot.
  * @param {Document|Element} root
  * @param {Snapshot} snapshot
- * @param {{compact:boolean}} options Reserved for responsive controls.
+ * @param {{compact:boolean,reducedMotion?:boolean}} options
  * @returns {void}
  */
 export function renderInterface(root, snapshot, options = {compact:false}) {
   renderControls(root, snapshot, options);
+  renderPlayback(root, snapshot, options);
   renderPart(root, snapshot);
   renderPreview(root, snapshot);
   renderChallenge(root, snapshot);
