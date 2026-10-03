@@ -26,7 +26,7 @@ The reference PDFs could not be materialized with the supported Library tools (`
 | Optional tool registry stub | PASS | Browser stub valid/invalid inputs and registration replacement; Node failure/lifecycle tests |
 | Actual WebMCP invocation | NOT RUN | Unstubbed `webmcp-list`: no registered tools |
 | Real back/forward-cache round trip / cross-browser | NOT RUN | Lifecycle events were synthetic; one Chromium version tested |
-| Whole-branch independent review | PENDING | Runs after this checkpoint; findings must be resolved before Task 9 closes |
+| Whole-branch independent review | PASS | [Independent review](acceptance/REVIEW.md): no actionable defects; 74 tests and direct baseline comparison of 294 settings / 1,764 evaluations passed. Task 9 review gate closed; coverage limits above remain open |
 
 ## Commands and audit
 
