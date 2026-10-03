@@ -6,6 +6,7 @@ const $$ = selector => [...document.querySelectorAll(selector)];
 const optionLists = {aperture:APERTURES, shutter:SHUTTERS, iso:ISOS};
 let committed = createSnapshot(createInitialState());
 let announcementTimer;
+const compactQuery = matchMedia('(max-width: 899px)');
 function announce(message) {
   clearTimeout(announcementTimer);
   $('#lab-announcement').textContent = '';
@@ -41,7 +42,7 @@ function readSnapshot() { return committed; }
 function dispatch(action) {
   const candidate = transition(readSnapshot(), action);
   committed = candidate;
-  renderInterface(document, candidate, {compact:false});
+  renderInterface(document, candidate, {compact:compactQuery.matches});
   renderDiagram(candidate);
   return candidate;
 }
@@ -96,8 +97,30 @@ $('#reset').addEventListener('click', () => {
   $('.reference-disclosure').open = false;
   announce('Camera reset. f/4, 1/125 second, ISO 400. Lens selected, assembled mirrorless view. Experiment progress retained.');
 });
+const controlKeys = Object.keys(optionLists);
+for (const tab of $$('[data-control]')) {
+  tab.addEventListener('click', () => dispatch({type:'set-control', control:tab.dataset.control}));
+  tab.addEventListener('keydown', event => {
+    const index = controlKeys.indexOf(tab.dataset.control);
+    const next = event.key === 'ArrowRight' ? (index + 1) % 3 : event.key === 'ArrowLeft' ? (index + 2) % 3 : event.key === 'Home' ? 0 : event.key === 'End' ? 2 : -1;
+    if (next < 0) return;
+    event.preventDefault();
+    dispatch({type:'set-control', control:controlKeys[next]});
+    $('#control-tab-' + controlKeys[next]).focus();
+  });
+}
+compactQuery.addEventListener('change', () => {
+  const focused = document.activeElement;
+  if (compactQuery.matches && controlKeys.includes(focused.id)) {
+    dispatch({type:'set-control', control:focused.id});
+  } else {
+    renderInterface(document, readSnapshot(), {compact:compactQuery.matches});
+    if (!compactQuery.matches && focused.dataset.control) $('#' + focused.dataset.control).focus();
+  }
+});
+for (const link of $$('a[href="#settings"]')) link.addEventListener('click', () => $('#settings').focus({preventScroll:true}));
 createGrain(document);
-renderInterface(document, readSnapshot(), {compact:false});
+renderInterface(document, readSnapshot(), {compact:compactQuery.matches});
 renderDiagram(readSnapshot());
 
 // Progressive WebMCP support. Registration failures never gate the instrument.

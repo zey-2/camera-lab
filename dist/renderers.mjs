@@ -40,7 +40,7 @@ function renderPart(root, snapshot) {
  * @param {Snapshot} snapshot
  * @returns {void}
  */
-function renderControls(root, snapshot) {
+function renderControls(root, snapshot, {compact}) {
   const { state, exposure: model } = snapshot;
   const $ = selector => root.querySelector(selector);
   const $$ = selector => [...root.querySelectorAll(selector)];
@@ -50,6 +50,17 @@ function renderControls(root, snapshot) {
     input.value = index;
     input.style.setProperty('--progress', `${index / (values.length - 1) * 100}%`);
     input.setAttribute('aria-valuetext', key === 'aperture' ? `f/${state.settings[key]}` : key === 'shutter' ? `1/${state.settings[key]} second` : `ISO ${state.settings[key]}`);
+  }
+  $('#control-tabs').hidden = !compact;
+  for (const key of Object.keys(optionLists)) {
+    const selected = state.activeControl === key;
+    const tab = $('#control-tab-' + key);
+    tab.setAttribute('aria-selected', String(selected));
+    tab.tabIndex = selected ? 0 : -1;
+    const panel = $('#control-panel-' + key);
+    panel.hidden = compact && !selected;
+    panel.setAttribute('role', compact ? 'tabpanel' : 'group');
+    $('#tab-value-' + key).textContent = key === 'aperture' ? 'f/' + state.settings[key] : key === 'shutter' ? '1/' + state.settings[key] + ' s' : state.settings[key];
   }
   $('#aperture-value').textContent = `f/${state.settings.aperture}`;
   $('#shutter-value').textContent = `1/${state.settings.shutter} s`;
@@ -131,7 +142,7 @@ function renderChallenge(root, snapshot) {
  * @returns {void}
  */
 export function renderInterface(root, snapshot, options = {compact:false}) {
-  renderControls(root, snapshot);
+  renderControls(root, snapshot, options);
   renderPart(root, snapshot);
   renderPreview(root, snapshot);
   renderChallenge(root, snapshot);
