@@ -123,3 +123,51 @@ test('geometry is independent of settings and hidden selections get a location m
   assert.equal(camera.describeCamera(before).marker.part,'sensor');
   assert.equal(camera.describeCamera(snapshot('dslr','cutaway','sensor')).marker,null);
 });
+
+test('exploded optical row and DSLR finder stack use coherent alignment', () => {
+  for (const type of ['mirrorless','dslr']) {
+    const d=camera.describeCamera(snapshot(type,'exploded'));
+    const p=Object.fromEntries(d.parts.map(p=>[p.id,p.transform]));
+    for(const id of ['aperture','shutter','sensor']) assert.equal(p[id][1],p.lens[1],`${type}/${id} optical axis`);
+    if(type==='dslr') {
+      const mirrorHitX=p.mirror[0]-29+29*56/61;
+      assert.ok(Math.abs(p['focusing-screen'][0]-mirrorHitX)<0.001,'screen over reflective surface');
+      assert.equal(p.prism[0],p['focusing-screen'][0]);
+      assert.equal(p['optical-finder'][1],p.prism[1]);
+      assert.ok(p.prism[1]<p['focusing-screen'][1] && p['focusing-screen'][1]<p.mirror[1]);
+    }
+  }
+});
+test('every exploded component has at least eight units of clear separation', () => {
+  for(const type of ['mirrorless','dslr']) {
+    const config=getCameraConfig(type),d=camera.describeCamera(snapshot(type,'exploded'));
+    const bounds=d.parts.map(p=>{const [x,y,w,h]=config.geometry[p.id].bounds;return {id:p.id,l:x+p.transform[0],r:x+w+p.transform[0],t:y+p.transform[1],b:y+h+p.transform[1]};});
+    for(let i=0;i<bounds.length;i++)for(let j=i+1;j<bounds.length;j++) {
+      const a=bounds[i],b=bounds[j];
+      assert.ok(a.r+8<=b.l || b.r+8<=a.l || a.b+8<=b.t || b.b+8<=a.t,`${type}: ${a.id} / ${b.id} overlap or insufficient gap`);
+    }
+  }
+});
+test('exploded guides join named mating points and clear the lifted shell', () => {
+  for(const type of ['mirrorless','dslr']) {
+    const config=getCameraConfig(type),d=camera.describeCamera(snapshot(type,'exploded'));
+    assert.ok(Array.isArray(d.guides) && d.guides.length>=3,'explicit guide descriptors');
+    const p=Object.fromEntries(d.parts.map(p=>[p.id,p.transform]));
+    const [bx,by,bw,bh]=config.geometry.body.bounds;
+    const box=[bx+p.body[0],by+p.body[1],bx+bw+p.body[0],by+bh+p.body[1]];
+    for(const guide of d.guides) {
+      assert.notEqual(guide.from.part,guide.to.part);
+      const expected=[guide.from,guide.to].map(endpoint=>endpoint.point.map((value,i)=>value+p[endpoint.part][i]));
+      assert.deepEqual(guide.points,expected,'guide follows exploded mating points, never old assembled anchors');
+      for(const endpoint of [guide.from,guide.to]) {
+        const [x,y,w,h]=config.geometry[endpoint.part].bounds,[px,py]=endpoint.point;
+        assert.ok(px>=x && px<=x+w && py>=y && py<=y+h,'endpoint belongs to its part');
+      }
+      for(let step=0;step<=100;step++) {
+        const [x,y]=guide.points[0].map((v,i)=>v+(guide.points[1][i]-v)*step/100);
+        assert.ok(x<box[0] || x>box[2] || y<box[1] || y>box[3],`${type}/${guide.id} crosses shell`);
+      }
+    }
+    for(const mode of ['assembled','cutaway'])assert.deepEqual(camera.describeCamera(snapshot(type,mode)).guides,[]);
+  }
+});

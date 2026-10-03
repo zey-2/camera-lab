@@ -1,6 +1,6 @@
 import {getCameraConfig} from './camera-config.mjs';
 
-/** @typedef {{cameraType:import('./state.mjs').CameraType, viewMode:import('./state.mjs').ViewMode, parts:{id:string,transform:number[],visible:boolean,selected:boolean}[], selectedPart:string, mirror:'down'|'up'|'absent', finder:'optical'|'dark'|'electronic', sensorReceivingLight:boolean, shutterOpen:boolean, exposurePhase:import('./state.mjs').Phase, paths:readonly import('./camera-config.mjs').Path[], marker:null|{part:string,label:string,anchor:readonly number[]}, explanation:string, apertureOpening:number, shutterLabel:string, shutterCue:number}} CameraDescriptor */
+/** @typedef {{cameraType:import('./state.mjs').CameraType, viewMode:import('./state.mjs').ViewMode, parts:{id:string,transform:number[],visible:boolean,selected:boolean}[], selectedPart:string, mirror:'down'|'up'|'absent', finder:'optical'|'dark'|'electronic', sensorReceivingLight:boolean, shutterOpen:boolean, exposurePhase:import('./state.mjs').Phase, paths:readonly import('./camera-config.mjs').Path[], guides:{id:string,from:{part:string,point:readonly number[]},to:{part:string,point:readonly number[]},points:number[][]}[], marker:null|{part:string,label:string,anchor:readonly number[]}, explanation:string, apertureOpening:number, shutterLabel:string, shutterCue:number}} CameraDescriptor */
 
 /** Derive one camera presentation without changing its geometry or exposure model.
  * @param {import('./state.mjs').Snapshot} snapshot
@@ -12,6 +12,8 @@ export function describeCamera({state, exposure}) {
     transform:config.geometry[id].anchor.map((v,i)=>v+(state.viewMode==='exploded'?config.geometry[id].explodedOffset[i]:0)),
     visible:state.viewMode!=='assembled'||!config.parts[id].internal,
     selected:state.selectedPart===id}));
+  const positions=Object.fromEntries(parts.map(part=>[part.id,part.transform]));
+  const guides=state.viewMode==='exploded'?config.explodedGuides.map(guide=>({...guide,points:[guide.from,guide.to].map(endpoint=>endpoint.point.map((value,i)=>value+positions[endpoint.part][i]))})):[];
   const hidden=state.viewMode==='assembled' && config.parts[state.selectedPart].internal;
   const dslr=state.cameraType==='dslr', capture=state.exposurePhase==='exposure';
   const explanation=dslr
@@ -19,7 +21,7 @@ export function describeCamera({state, exposure}) {
       :'Viewing: the lowered mirror reflects lens light up to the focusing screen, through the prism, and into the optical finder. The closed shutter shields the sensor; it receives no open capture path.'
     : capture?'Exposure: a representative mechanical shutter interval admits lens light to the sensor. The dashed electronic signal represents sensor information sent to the EVF. Actual EVF behavior during capture varies by camera; this schematic does not simulate a universal blackout.'
       :'Viewing: lens light reaches the sensor through the open shutter. The sensor converts light into an electronic signal for the EVF display. No mirror or prism is present; the dashed signal is not a light ray.';
-  return {cameraType:state.cameraType,viewMode:state.viewMode,parts,selectedPart:state.selectedPart,
+  return {cameraType:state.cameraType,viewMode:state.viewMode,parts,guides,selectedPart:state.selectedPart,
     marker:hidden?{part:state.selectedPart,anchor:config.geometry[state.selectedPart].anchor,label:config.parts[state.selectedPart].name}:null,
     mirror:dslr?(capture?'up':'down'):'absent',finder:dslr?(capture?'dark':'optical'):'electronic',
     sensorReceivingLight:!dslr||capture,shutterOpen:!dslr||capture,exposurePhase:state.exposurePhase,
@@ -49,14 +51,12 @@ const artwork={
 
 function initialize(svg) {
  const doc=svg.ownerDocument;
- const guides=svg.querySelector('#camera-guides');
  const layer=svg.querySelector('#camera-parts');
  // Body is painted first; opaque assembled mode also hides every internal group.
  for(const id of ['body','lens','aperture','mirror','focusing-screen','prism','optical-finder','evf','shutter','sensor']) {
   const group=node(doc,'g',{id:`part-${id}`,'data-part':id,class:'diagram-part'});
   group.innerHTML=id==='body'?`<path class="body-shell part-outline"/><path class="body-cut-edge"/><path class="body-grip"/><path class="grip-texture"/><ellipse class="mount-ring" cx="0" cy="15" rx="14" ry="76"/><path class="body-top-seam"/><ellipse class="shutter-button" rx="14" ry="5"/><path class="hotshoe"/><circle class="body-fastener" r="2.5"/><path class="strap-lug"/>`:artwork[id];
   const title=node(doc,'title');group.prepend(title);layer.append(group);
-  guides.append(node(doc,'line',{'data-guide':id,class:'assembly-guide'}));
  }
  for(const id of ['optical-viewing','capture-light','sensor-light','evf-signal']) {
   svg.querySelector('#camera-paths').append(node(doc,'polyline',{'data-path':id,fill:'none'}));
@@ -87,11 +87,12 @@ export function renderCamera(root, descriptor) {
   group.setAttribute('transform',`translate(${part.transform.join(' ')})`);
   group.classList.toggle('is-selected',part.selected);
   group.querySelector('title').textContent=config.parts[part.id].name;
-  const guide=$(`[data-guide="${part.id}"]`);
-  const [x,y]=config.geometry[part.id].anchor;
-  for(const [key,value] of Object.entries({x1:x,y1:y,x2:part.transform[0],y2:part.transform[1]}))guide.setAttribute(key,value);
  }
- for(const guide of svg.querySelectorAll('[data-guide]'))guide.setAttribute('display',separated&&config.partIds.includes(guide.dataset.guide)?'inline':'none');
+ const guideLayer=$('#camera-guides');
+ guideLayer.replaceChildren(...descriptor.guides.map(guide=>node(svg.ownerDocument,'line',{
+  'data-guide':guide.id,class:'assembly-guide',
+  x1:guide.points[0][0],y1:guide.points[0][1],x2:guide.points[1][0],y2:guide.points[1][1]
+ })));
  const body=$('#part-body');
  const set=(selector,attrs)=>{for(const [key,value] of Object.entries(attrs))body.querySelector(selector).setAttribute(key,value);};
  set('.body-shell',{d:config.outlinePath+(open?' '+config.cutawayPath:''),'fill-rule':'evenodd'});
