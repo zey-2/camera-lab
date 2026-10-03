@@ -18,3 +18,24 @@ test('renderer exposes snapshot interface and seeded grain initialization', asyn
   assert.equal(typeof renderer.createGrain, 'function');
 });
 
+
+test('rendered ratios and setting descriptions preserve Unicode formatting', async () => {
+  const {renderInterface} = await import('../dist/renderers.mjs');
+  const {createSnapshot} = await import('../dist/state.mjs');
+  const {createInitialState} = await import('../dist/model.mjs');
+  const nodes = new Map();
+  const root = {
+    querySelector(selector) {
+      if (!nodes.has(selector)) nodes.set(selector, {
+        style: {setProperty() {}}, classList: {toggle() {}}, setAttribute() {}
+      });
+      return nodes.get(selector);
+    },
+    querySelectorAll() { return []; }
+  };
+  renderInterface(root, createSnapshot(createInitialState()), {compact:false});
+  assert.equal(nodes.get('#captured-light').textContent, '1.00\u00d7');
+  assert.equal(nodes.get('#image-brightness').textContent, '1.00\u00d7');
+  assert.equal(nodes.get('#challenge-current').textContent, 'f/4 \u00b7 1/125 s \u00b7 ISO 400');
+  assert.ok(nodes.get('#preview-desc').textContent.startsWith('f/4 \u00b7 1/125 s \u00b7 ISO 400.'));
+});
