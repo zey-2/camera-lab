@@ -4,6 +4,7 @@ import { renderInterface, createGrain } from './renderers.mjs';
 import { describeCamera, renderCamera } from './camera.mjs';
 import { getCameraConfig } from './camera-config.mjs';
 import { createPlayback } from './playback.mjs';
+import { serializeCameraState, registerCameraTools } from './tools.mjs';
 const $ = selector => document.querySelector(selector);
 const $$ = selector => [...document.querySelectorAll(selector)];
 const optionLists = {aperture:APERTURES, shutter:SHUTTERS, iso:ISOS};
@@ -52,10 +53,7 @@ function setCameraSettings(patch, selectControl) {
   return readCameraState();
 }
 function readCameraState() {
-  const {state, exposure, challenge} = readSnapshot();
-  return {settings:{...state.settings}, exposure:{...exposure}, selectedPart:state.selectedPart,
-    exploded:state.viewMode === 'exploded', challenge:{id:state.challengeId, ...challenge},
-    completedChallenges:[...state.completed], simulation:'Illustrative, fixed scene and focus; not a calibrated camera prediction.'};
+  return serializeCameraState(readSnapshot());
 }
 for (const [key, values] of Object.entries(optionLists)) {
   $(`#${key}`).addEventListener('input', event => {
@@ -152,47 +150,18 @@ renderSnapshot(readSnapshot());
 
 // Progressive WebMCP support. Registration failures never gate the instrument.
 const modelContext = document.modelContext ?? navigator.modelContext;
-let toolLifecycle;
-function registerCameraTools() {
-  if (!modelContext || typeof modelContext.registerTool !== 'function') return;
-  if (toolLifecycle && !toolLifecycle.signal.aborted) return;
-  toolLifecycle = new AbortController();
-  const lifecycle = toolLifecycle;
-  const definitions = [
-    {
-      name: 'read_camera_state',
-      title: 'Read camera state',
-      description: 'Read the Camera Lab settings, illustrative light and brightness model, component selection, and challenge evaluation.',
-      inputSchema: { type: 'object', properties: {}, additionalProperties: false },
-      annotations: { readOnlyHint: true, untrustedContentHint: false },
-      execute: async input => {
-        if (!input || typeof input !== 'object' || Array.isArray(input) || Object.keys(input).length !== 0) throw new TypeError('Invalid read input: expected an empty object');
-        return readCameraState();
-      }
-    },
-    {
-      name: 'set_camera_settings',
-      title: 'Set camera settings',
-      description: 'Set one or more Camera Lab controls to supported numeric values. Shutter is the denominator: 500 means 1/500 second. Updates the same visible state as the sliders.',
-      inputSchema: { type: 'object', minProperties: 1, properties: { aperture: { type: 'number', enum: [...APERTURES] }, shutter: { type: 'number', enum: [...SHUTTERS] }, iso: { type: 'number', enum: [...ISOS] } }, additionalProperties: false },
-      annotations: { readOnlyHint: false, untrustedContentHint: false },
-      execute: async input => setCameraSettings(input)
-    }
-  ];
-  for (const definition of definitions) {
-    try {
-      void Promise.resolve(modelContext.registerTool(definition, { signal: lifecycle.signal })).catch(() => lifecycle.abort());
-    } catch { lifecycle.abort(); }
-    if (lifecycle.signal.aborted) break;
-  }
+const toolApi = {read:readCameraState, set:patch => setCameraSettings(patch)};
+let toolLifecycle = registerCameraTools(modelContext, toolApi);
+function ensureCameraTools() {
+  if (!toolLifecycle) toolLifecycle = registerCameraTools(modelContext, toolApi);
 }
-registerCameraTools();
 addEventListener('pagehide', () => {
   playback.cancel();
   committed = transition(readSnapshot(), {type:'set-phase', phase:'viewing'});
-  toolLifecycle?.abort();
+  toolLifecycle?.dispose();
+  toolLifecycle = undefined;
 });
 addEventListener('pageshow', () => {
   renderSnapshot(readSnapshot());
-  if (toolLifecycle?.signal.aborted) registerCameraTools();
+  ensureCameraTools();
 });
