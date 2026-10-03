@@ -25,13 +25,16 @@ function renderPart(root, snapshot) {
   const $ = selector => root.querySelector(selector);
   const $$ = selector => [...root.querySelectorAll(selector)];
   const metadata = getCameraConfig(state.cameraType).parts[state.selectedPart];
-  const part = {number:'', tag:'COMPONENT', ...metadata, ...parts[state.selectedPart]};
+  const part = {number:String(getCameraConfig(state.cameraType).partIds.indexOf(state.selectedPart)+1).padStart(2,'0'), tag:'COMPONENT', ...parts[state.selectedPart], ...metadata};
   $('#part-detail-number').textContent = part.number;
   $('#part-name').textContent = part.name;
   $('#part-function').textContent = part.tag;
   $('#part-description').textContent = part.description;
   $('#part-connection').textContent = part.connection;
-  for (const button of $$('[data-select-part]')) button.setAttribute('aria-pressed', String(button.dataset.selectPart === state.selectedPart));
+  for (const button of $$('[data-select-part]')) {
+    button.hidden=!getCameraConfig(state.cameraType).partIds.includes(button.dataset.selectPart);
+    button.setAttribute('aria-pressed', String(button.dataset.selectPart === state.selectedPart));
+  }
   for (const group of $$('.diagram-part')) group.classList.toggle('is-selected', group.dataset.part === state.selectedPart);
 }
 

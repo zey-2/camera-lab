@@ -1,6 +1,7 @@
 import { APERTURES, SHUTTERS, ISOS, createInitialState } from './model.mjs';
 import { createSnapshot, transition } from './state.mjs';
 import { renderInterface, createGrain } from './renderers.mjs';
+import { describeCamera, renderCamera } from './camera.mjs';
 const $ = selector => document.querySelector(selector);
 const $$ = selector => [...document.querySelectorAll(selector)];
 const optionLists = {aperture:APERTURES, shutter:SHUTTERS, iso:ISOS};
@@ -13,25 +14,7 @@ function announce(message) {
   announcementTimer = setTimeout(() => { $('#lab-announcement').textContent = message; }, 60);
 }
 
-function renderDiagram(snapshot) {
-  const {state, exposure:model} = snapshot;
-  const exploded = state.viewMode === 'exploded';
-  const positions = exploded ? { lens: 130, aperture: 326, shutter: 473, sensor: 586, body: 680 } : { lens: 284, aperture: 371, shutter: 432, sensor: 487, body: 549 };
-  for (const [key, position] of Object.entries(positions)) $(`#part-${key}`).style.setProperty('--x', `${position}px`);
-  $('#assembly-toggle').setAttribute('aria-pressed', String(exploded));
-  $('#assembly-status').textContent = exploded ? 'PARTS SEPARATED FOR EXPLORATION' : 'ASSEMBLED · LIGHT-TIGHT HOUSING';
-  $('#aperture-hole').setAttribute('ry', model.apertureOpening.toFixed(2));
-  $('#aperture-hole').setAttribute('rx', (model.apertureOpening * 0.39).toFixed(2));
-  const lensX = positions.lens + 45;
-  const sensorX = positions.sensor + 8;
-  const edge = 28 + model.apertureOpening * 0.5;
-  $('#light-fill').setAttribute('d', `M23 ${186 - edge}H${lensX}L${sensorX} 186 ${lensX} ${186 + edge}H23Z`);
-  $('#ray-top').setAttribute('d', `M23 ${186 - edge}H${lensX}L${sensorX} 186`);
-  $('#ray-mid').setAttribute('d', `M23 186H${sensorX}`);
-  $('#ray-bottom').setAttribute('d', `M23 ${186 + edge}H${lensX}L${sensorX} 186`);
-  $('#shutter-gap').setAttribute('stroke-width', Math.max(1.5, Math.min(28, 1000 / state.settings.shutter)).toFixed(2));
-}
-
+function renderDiagram(snapshot) { renderCamera(document, describeCamera(snapshot)); }
 
 /** @returns {import('./state.mjs').Snapshot} The immutable committed snapshot. */
 function readSnapshot() { return committed; }
@@ -71,11 +54,20 @@ for (const [key, values] of Object.entries(optionLists)) {
 for (const button of $$('[data-select-part]')) button.addEventListener('click', () => {
   dispatch({type:'select-part', part:button.dataset.selectPart, source:'list'});
 });
-for (const part of $$('.diagram-part')) part.addEventListener('click', () => {
-  dispatch({type:'select-part', part:part.dataset.part, source:'diagram'});
+$('#camera-diagram').addEventListener('click', event => {
+  const part=event.target.closest('[data-part]');
+  if(part)dispatch({type:'select-part',part:part.dataset.part,source:'diagram'});
 });
-$('#assembly-toggle').addEventListener('click', () => {
-  dispatch({type:'set-view', viewMode:readSnapshot().state.viewMode === 'exploded' ? 'assembled' : 'exploded'});
+for(const button of $$('button[data-camera-type]')) button.addEventListener('click',()=>{
+  dispatch({type:'set-type',cameraType:button.dataset.cameraType});
+  announce(button.textContent+' camera selected.');
+});
+for(const button of $$('button[data-view-mode]')) button.addEventListener('click',()=>{
+  dispatch({type:'set-view',viewMode:button.dataset.viewMode});
+});
+$('#open-cutaway').addEventListener('click',()=>{
+  dispatch({type:'set-view',viewMode:'cutaway'});
+  $('[data-view-mode="cutaway"]').focus();
 });
 for (const button of $$('[data-challenge]')) button.addEventListener('click', () => {
   dispatch({type:'choose-challenge', id:button.dataset.challenge});

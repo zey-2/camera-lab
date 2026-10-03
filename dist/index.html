@@ -22,61 +22,25 @@
     </header>
 
     <main>
-<div class="page-intro"><div><h1>Camera lab<span>.</span></h1><p class="intro-copy">Follow the light. Find the photograph.</p></div><button class="text-button reset-button" id="reset" type="button">Reset camera</button></div><div id="lab-toolbar" class="lab-toolbar"><span>Schematic simulation</span><button id="assembly-toggle" class="assembly-toggle" type="button" aria-pressed="true"><span class="toggle-track" aria-hidden="true"><span></span></span> Exploded view</button></div>      <div class="workbench" id="lab-workbench">
+<div class="page-intro"><div><h1>Camera lab<span>.</span></h1><p class="intro-copy">Follow the light. Find the photograph.</p></div><button class="text-button reset-button" id="reset" type="button">Reset camera</button></div><div id="lab-toolbar" class="lab-toolbar">
+  <div class="camera-type-controls" role="group" aria-label="Camera type"><button type="button" data-camera-type="mirrorless" aria-pressed="true">Mirrorless</button><button type="button" data-camera-type="dslr" aria-pressed="false">DSLR</button></div>
+  <div class="camera-view-controls" role="group" aria-label="Camera view"><button type="button" data-view-mode="assembled" aria-pressed="true">Assembled</button><button type="button" data-view-mode="cutaway" aria-pressed="false">Cutaway</button><button type="button" data-view-mode="exploded" aria-pressed="false">Exploded</button></div>
+</div>      <div class="workbench" id="lab-workbench">
         <section class="anatomy panel" aria-labelledby="anatomy-title">
           <div class="panel-heading"><h2 id="anatomy-title"><span class="section-number">01</span> Inside the camera</h2></div>
           <div class="diagram-wrap">
-            <div class="diagram-note"><span class="tiny-cross" aria-hidden="true">+</span> SIMPLIFIED MIRRORLESS CROSS-SECTION</div>
-            <svg id="camera-diagram" class="camera-diagram" viewBox="0 0 780 355" role="img" aria-labelledby="diagram-title diagram-description">
-              <title id="diagram-title">Camera components and the path of light</title><desc id="diagram-description">Light enters the lens, passes the aperture and shutter, and reaches the sensor inside the camera body. Select a part with the five buttons below.</desc>
+            <svg id="camera-diagram" class="camera-diagram" viewBox="0 0 780 355" role="img" aria-labelledby="camera-title camera-desc">
+              <title id="camera-title">Camera anatomy</title><desc id="camera-desc">Schematic simulation of a complete camera.</desc>
               <defs>
-                <linearGradient id="glass" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#b1d9d0" stop-opacity=".38"/><stop offset=".45" stop-color="#548d88" stop-opacity=".12"/><stop offset="1" stop-color="#b1d9d0" stop-opacity=".3"/></linearGradient>
-                <linearGradient id="metal" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#454943"/><stop offset=".45" stop-color="#222620"/><stop offset="1" stop-color="#353a32"/></linearGradient>
-                <linearGradient id="sensor-surface" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#e6b768"/><stop offset=".45" stop-color="#be9570"/><stop offset="1" stop-color="#658c83"/></linearGradient>
-                <pattern id="sensor-grid" width="7" height="7" patternUnits="userSpaceOnUse"><path d="M7 0H0V7" fill="none" stroke="#222922" stroke-opacity=".45" stroke-width=".6"/></pattern>
+                <linearGradient id="camera-metal" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#60665b"/><stop offset=".24" stop-color="#343d33"/><stop offset=".72" stop-color="#232c25"/><stop offset="1" stop-color="#3b4437"/></linearGradient>
+                <linearGradient id="camera-glass" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#698f83"/><stop offset=".45" stop-color="#183d37"/><stop offset="1" stop-color="#385d55"/></linearGradient>
+                <linearGradient id="camera-sensor" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#e8bf79"/><stop offset=".45" stop-color="#a6af89"/><stop offset="1" stop-color="#648c86"/></linearGradient>
               </defs>
-              <path class="axis" d="M21 186H753"/>
-              <g class="svg-small"><text x="25" y="65">LIGHT IN</text><path d="M25 77H93m-5-4 5 4-5 4"/><text x="594" y="65">IMAGE FORMS</text></g>
-              <g id="part-body" class="diagram-part" data-part="body" style="--x:680px">
-                <path class="body-back" d="M-39 81 44 61 68 80v196l-24 16-83-12Z"/><path class="body-front" d="M-66 100-39 81v199l-27-20Z"/>
-                <path d="M-27 101 34 87 48 99v157l-15 12-60-8Z" fill="#171c17" stroke="#50594c"/>
-                <path d="M47 106v127m8-131v134m-1 30-15 10M-28 79v-9l28-7 10 5v10" fill="none" stroke="#56604f"/>
-                <circle cx="55" cy="86" r="3" fill="#d0ad6d"/><path class="leader" d="M14 286v27h24"/><text class="part-label" x="42" y="317">05</text>
-              </g>
-              <g id="light-rays" class="light-rays" aria-hidden="true"><path id="light-fill" fill="#e6b660" fill-opacity=".06"/><path id="ray-top"/><path id="ray-mid"/><path id="ray-bottom"/></g>
-              <g id="part-lens" class="diagram-part is-selected" data-part="lens" style="--x:130px">
-                <path d="M0 103H76a31 83 0 0 1 0 166H0Z" fill="url(#metal)" stroke="#63695e"/>
-                <ellipse cx="76" cy="186" rx="28" ry="82" fill="#252d27" stroke="#737c6c"/>
-                <path d="M20 105v161m8-159v158m8-158v158m8-158v158m8-158v158" fill="none" stroke="#757b68" stroke-opacity=".25"/>
-                <ellipse class="part-outline" cx="0" cy="186" rx="35" ry="85" fill="#222922" stroke="#778372" stroke-width="1.5"/>
-                <ellipse cx="0" cy="186" rx="27" ry="74" fill="url(#glass)" stroke="#aec6b1" stroke-opacity=".65"/>
-                <path d="M-11 135q-18 39-1 85M8 122q18 54 6 105" fill="none" stroke="#bcd8c9" stroke-opacity=".45"/>
-                <ellipse cx="58" cy="186" rx="12" ry="64" fill="url(#glass)" stroke="#92beb1" stroke-opacity=".35"/>
-                <path class="leader" d="M0 278v34h29"/><text class="part-label" x="34" y="317">01</text>
-              </g>
-              <g id="part-aperture" class="diagram-part" data-part="aperture" style="--x:326px">
-                <ellipse class="part-outline" cy="186" rx="31" ry="79" fill="url(#metal)" stroke="#778372"/>
-                <ellipse cy="186" rx="25" ry="68" fill="#222721" stroke="#545e4d"/>
-                <path d="m-2 118 20 55-12 66m-25-109 29 31 7 74m-41-64 31-18 10 74m-35-18 31-14 4 48m-10 11-14-47 3-62" fill="none" stroke="#899078" stroke-opacity=".65"/>
-                <ellipse id="aperture-hole" cy="186" rx="9" ry="22" fill="#efc16e" fill-opacity=".38" stroke="#efc16e"/>
-                <path class="leader" d="M0 274v38h22"/><text class="part-label" x="27" y="317">02</text>
-              </g>
-              <g id="part-shutter" class="diagram-part" data-part="shutter" style="--x:473px">
-                <path class="part-outline" d="m-23 114 53-16v174l-53 16Z" fill="#30372d" stroke="#86907d"/>
-                <path d="m-15 126 37-11v144l-37 11Z" fill="#171c17" stroke="#525f4a"/>
-                <g id="shutter-blades" fill="none" stroke="#68745f"><path d="m-14 142 35-11m-35 29 35-11m-35 29 35-11m-35 29 35-11m-35 29 35-11m-35 29 35-11"/></g>
-                <path id="shutter-gap" d="m-14 196 35-11" stroke="#edc579" stroke-width="7"/>
-                <path class="leader" d="M4 290v22h21"/><text class="part-label" x="30" y="317">03</text>
-              </g>
-              <g id="part-sensor" class="diagram-part" data-part="sensor" style="--x:586px">
-                <path class="part-outline" d="m-20 123 51-16v159l-51 16Z" fill="#384137" stroke="#849c82"/>
-                <path d="m-11 134 33-10v130l-33 10Z" fill="url(#sensor-surface)" stroke="#edc579"/>
-                <path d="m-11 134 33-10v130l-33 10Z" fill="url(#sensor-grid)"/>
-                <path d="m-26 147-9 3m9 14-9 3m9 14-9 3m9 14-9 3m9 14-9 3m9 14-9 3m64-99 8-2m-8 19 8-2m-8 19 8-2m-8 19 8-2m-8 19 8-2m-8 19 8-2" fill="none" stroke="#9d9872"/>
-                <path class="leader" d="M5 284v28h18"/><text class="part-label" x="28" y="317">04</text>
-              </g>
+              <g id="camera-guides" aria-hidden="true"></g>
+              <g id="camera-parts"></g>
+              <g id="camera-location" display="none" aria-hidden="true"><title>Selected component location</title><circle r="11"/><path d="M-18 0H18M0-18V18"/></g>
             </svg>
-            <div class="diagram-footer"><span><span class="amber-line"></span> PATH OF LIGHT</span><span id="assembly-status">PARTS SEPARATED FOR EXPLORATION</span></div>
+            <div class="camera-caption"><span>Schematic simulation</span><span id="camera-mode-note">Complete light-tight housing</span><button id="open-cutaway" type="button" hidden>Open cutaway</button></div>
           </div>
 
         </section>
@@ -140,6 +104,11 @@
             <button type="button" data-select-part="shutter" aria-pressed="false"><span>03</span>Shutter</button>
             <button type="button" data-select-part="sensor" aria-pressed="false"><span>04</span>Sensor</button>
             <button type="button" data-select-part="body" aria-pressed="false"><span>05</span>Body</button>
+            <button type="button" data-select-part="evf" aria-pressed="false"><span>06</span>Electronic finder</button>
+            <button type="button" data-select-part="mirror" aria-pressed="false" hidden><span>06</span>Reflex mirror</button>
+            <button type="button" data-select-part="focusing-screen" aria-pressed="false" hidden><span>07</span>Focusing screen</button>
+            <button type="button" data-select-part="prism" aria-pressed="false" hidden><span>08</span>Prism</button>
+            <button type="button" data-select-part="optical-finder" aria-pressed="false" hidden><span>09</span>Optical finder</button>
           </div>
           <div class="part-detail" aria-live="polite" aria-atomic="true"><div id="part-detail-number" class="detail-number">01</div><div><div class="detail-title-row"><h3 id="part-name">The lens</h3><span class="detail-tag" id="part-function">FOCUS</span></div><p id="part-description">Curved glass bends incoming light to form an image on the sensor. This lab holds focus on the moving amber target.</p><p class="part-connection" id="part-connection">Focus stays fixed here. Change the aperture to explore how much of the scene appears sharp.</p></div></div>          <dl class="control-notes"><div><dt>Aperture</dt><dd>Opening width changes light and depth of field.</dd></div><div><dt>Shutter</dt><dd>Time collecting light changes brightness and motion blur.</dd></div><div><dt>ISO</dt><dd>Brightens the captured signal. It adds no incoming light.</dd></div></dl><dl class="preview-metrics"><div><dt>Motion</dt><dd id="motion-value">Visible trail</dd></div><div><dt>Background</dt><dd id="depth-value">Soft</dd></div><div><dt>Grain</dt><dd id="grain-value">Low</dd></div></dl>
           <p class="preview-caveat">A simulated test target. Brightness, blur, and grain illustrate trade-offs; they are not calibrated camera predictions.</p></section>

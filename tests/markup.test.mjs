@@ -1,6 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
+import {getCameraConfig} from '../dist/camera-config.mjs';
+
+test('every camera component has an equivalent named selection button', async () => {
+  const html=await readFile(new URL('../dist/index.html',import.meta.url),'utf8');
+  for(const type of ['mirrorless','dslr']) for(const id of getCameraConfig(type).partIds) {
+    assert.match(html,new RegExp(`<button[^>]*data-select-part="${id}"[^>]*>[^]*?</button>`),`missing ${id} button`);
+  }
+});
 
 test('all literal interface targets exist once', async () => {
   const html = await readFile(new URL('../dist/index.html', import.meta.url), 'utf8');
