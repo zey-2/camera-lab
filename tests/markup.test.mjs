@@ -10,6 +10,14 @@ test('every camera component has an equivalent named selection button', async ()
   }
 });
 
+test('mechanism labels expose light versus signal and symbolic capture cues', async () => {
+ const html=await readFile(new URL('../dist/index.html',import.meta.url),'utf8');
+ for(const id of ['camera-paths','camera-path-legend','camera-phase-label','camera-explanation','camera-shutter-value','shutter-timing-cue']) assert.match(html,new RegExp(`id="${id}"`));
+ assert.ok(html.includes('Preview of selected capture opening'));
+ assert.ok(html.includes('Electronic signal')); assert.ok(html.includes('Light'));
+ assert.ok(html.indexOf('id="camera-explanation"')>html.indexOf('id="lab-details"'));
+});
+
 test('all literal interface targets exist once', async () => {
   const html = await readFile(new URL('../dist/index.html', import.meta.url), 'utf8');
   const ids = [...html.matchAll(/\bid="([^"]+)"/g)].map(match => match[1]);

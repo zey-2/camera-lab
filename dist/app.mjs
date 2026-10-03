@@ -2,6 +2,7 @@ import { APERTURES, SHUTTERS, ISOS, createInitialState } from './model.mjs';
 import { createSnapshot, transition } from './state.mjs';
 import { renderInterface, createGrain } from './renderers.mjs';
 import { describeCamera, renderCamera } from './camera.mjs';
+import { getCameraConfig } from './camera-config.mjs';
 const $ = selector => document.querySelector(selector);
 const $$ = selector => [...document.querySelectorAll(selector)];
 const optionLists = {aperture:APERTURES, shutter:SHUTTERS, iso:ISOS};
@@ -59,8 +60,9 @@ $('#camera-diagram').addEventListener('click', event => {
   if(part)dispatch({type:'select-part',part:part.dataset.part,source:'diagram'});
 });
 for(const button of $$('button[data-camera-type]')) button.addEventListener('click',()=>{
-  dispatch({type:'set-type',cameraType:button.dataset.cameraType});
-  announce(button.textContent+' camera selected.');
+  const next=dispatch({type:'set-type',cameraType:button.dataset.cameraType});
+  const selection=getCameraConfig(next.state.cameraType).parts[next.state.selectedPart].name.replace(/^The /,'');
+  announce(`${button.textContent} camera. ${selection} selected.`);
 });
 for(const button of $$('button[data-view-mode]')) button.addEventListener('click',()=>{
   dispatch({type:'set-view',viewMode:button.dataset.viewMode});

@@ -45,3 +45,13 @@ test('choosing a challenge selects its linked control while preserving view', ()
     assert.equal(chosen.state.viewMode, current.state.viewMode);
   }
 });
+
+test('part selection survives views and unavailable EVF falls back on type change', () => {
+ const selected=transition(initial(),{type:'select-part',part:'evf',source:'list'});
+ for(const viewMode of ['assembled','cutaway','exploded']) {
+  const viewed=transition(selected,{type:'set-view',viewMode});
+  assert.equal(viewed.state.selectedPart,'evf'); assert.deepEqual(viewed.state.settings,selected.state.settings);
+  const dslr=transition(viewed,{type:'set-type',cameraType:'dslr'});
+  assert.equal(dslr.state.selectedPart,'sensor'); assert.equal(dslr.state.viewMode,viewMode);
+ }
+});

@@ -26,7 +26,67 @@ test('assembled and cutaway share anchors', () => {
     assert.deepEqual(assembled.parts.map(p=>p.transform),cutaway.parts.map(p=>p.transform));
     assert.deepEqual(assembled.parts.filter(p=>p.visible).map(p=>p.id).sort(),['body','lens']);
     assert.ok(cutaway.parts.every(p=>p.visible));
-    assert.deepEqual(assembled.paths,[]); assert.deepEqual(cutaway.paths,[]);
+    assert.deepEqual(assembled.paths,[]);
+  }
+});
+
+const phaseCamera = (cameraType, exposurePhase='viewing', patch={}) => camera.describeCamera(createSnapshot({...createInitialState(),cameraType,viewMode:'cutaway',exposurePhase,...patch}));
+test('DSLR viewing uses finder not sensor', () => {
+  const d=phaseCamera('dslr');
+  assert.equal(d.mirror,'down'); assert.equal(d.finder,'optical'); assert.equal(d.sensorReceivingLight,false);
+  assert.equal(d.shutterOpen,false);
+  assert.equal(d.paths.length,1); assert.equal(d.paths[0].kind,'light');
+  const points=d.paths[0].points;
+  assert.deepEqual(points.at(-1),getCameraConfig('dslr').geometry['optical-finder'].anchor);
+  // Incoming ray y=195 intersects the reflective stroke from (372,237) to (428,176).
+  const hit=points.find(([x,y])=>x>360&&x<435&&y===195);
+  assert.ok(hit); assert.ok(Math.abs(hit[0]-(372+(195-237)*(428-372)/(176-237)))<0.001);
+  assert.ok(points.some(([x,y])=>x>=362&&x<=446&&y===134),'crosses focusing screen');
+  assert.match(d.explanation,/focusing screen.*prism.*optical finder/i);
+});
+test('DSLR exposure lifts mirror and blacks finder', () => {
+  const d=phaseCamera('dslr','exposure');
+  assert.equal(d.mirror,'up'); assert.equal(d.finder,'dark'); assert.equal(d.sensorReceivingLight,true);
+  assert.equal(d.shutterOpen,true);
+  assert.deepEqual(d.paths[0].points.at(-1),getCameraConfig('dslr').geometry.sensor.anchor);
+  assert.ok(d.paths[0].points.every(([,y])=>y===195));
+  assert.match(d.explanation,/finder.*dark/i);
+});
+test('mirrorless omits mirror and prism and distinguishes electronic signal', () => {
+  for(const phase of ['viewing','exposure']) {
+    const d=phaseCamera('mirrorless',phase);
+    assert.equal(d.mirror,'absent'); assert.equal(d.finder,'electronic'); assert.equal(d.sensorReceivingLight,true);
+    assert.ok(!d.parts.some(p=>['mirror','prism'].includes(p.id)));
+    assert.deepEqual(d.paths.map(p=>p.kind),['light','signal']);
+    assert.deepEqual(d.paths[0].points.at(-1),getCameraConfig('mirrorless').geometry.sensor.anchor);
+    assert.ok(d.paths[1].points.at(-1)[0]>=420 && d.paths[1].points.at(-1)[0]<=464);
+  }
+  assert.match(phaseCamera('mirrorless','exposure').explanation,/representative mechanical/i);
+  assert.match(phaseCamera('mirrorless','exposure').explanation,/EVF.*varies/i);
+});
+test('exploded never displays live paths and assembled stays opaque', () => {
+  for(const type of ['dslr','mirrorless']) for(const mode of ['exploded','assembled']) {
+    const d=phaseCamera(type,'viewing',{viewMode:mode,selectedPart:'shutter'});
+    assert.deepEqual(d.paths,[]);
+    if(mode==='assembled') { assert.equal(d.marker.part,'shutter'); assert.match(d.marker.label,/shutter/i); }
+  }
+});
+test('ISO leaves incoming paths unchanged while opening and timing cues follow settings', () => {
+  for(const type of ['dslr','mirrorless']) for(const phase of ['viewing','exposure']) {
+    const base=phaseCamera(type,phase);
+    const iso=phaseCamera(type,phase,{settings:{aperture:4,shutter:125,iso:800}});
+    assert.deepEqual(iso.paths,base.paths);
+    assert.equal(iso.apertureOpening,base.apertureOpening); assert.equal(iso.shutterCue,base.shutterCue);
+    const fast=phaseCamera(type,phase,{settings:{aperture:16,shutter:1000,iso:400}});
+    assert.ok(fast.apertureOpening<base.apertureOpening); assert.ok(fast.shutterCue<base.shutterCue);
+    assert.equal(fast.shutterLabel,'1/1000 s');
+  }
+});
+test('exploded sensor is visibly separated from the housing bounds', () => {
+  for(const type of ['dslr','mirrorless']) {
+    const d=phaseCamera(type,'viewing',{viewMode:'exploded'}),g=getCameraConfig(type).geometry;
+    const sensor=d.parts.find(p=>p.id==='sensor'),body=d.parts.find(p=>p.id==='body');
+    assert.ok(sensor.transform[0]+g.sensor.bounds[0]>body.transform[0]+g.body.bounds[0]+g.body.bounds[2]+8);
   }
 });
 test('exploded preserves geometry identity', () => {

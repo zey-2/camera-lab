@@ -38,9 +38,13 @@
               </defs>
               <g id="camera-guides" aria-hidden="true"></g>
               <g id="camera-parts"></g>
+              <g id="camera-paths" aria-hidden="true"></g>
               <g id="camera-location" display="none" aria-hidden="true"><title>Selected component location</title><circle r="11"/><path d="M-18 0H18M0-18V18"/></g>
             </svg>
             <div class="camera-caption"><span>Schematic simulation</span><span id="camera-mode-note">Complete light-tight housing</span><button id="open-cutaway" type="button" hidden>Open cutaway</button></div>
+            <div id="camera-phase-label" class="camera-phase-label" hidden></div>
+            <div id="camera-path-legend" class="camera-path-legend" hidden><span><i class="legend-light" aria-hidden="true"></i>Light</span><span id="signal-legend"><i class="legend-signal" aria-hidden="true"></i>Electronic signal</span></div>
+            <div id="camera-capture-cues" class="camera-capture-cues" hidden><span>Preview of selected capture opening</span><span>Shutter <output id="camera-shutter-value">1/125 s</output> · symbolic timing <svg width="44" height="12" aria-hidden="true"><path d="M2 10H42" stroke="currentColor"/><rect id="shutter-timing-cue" x="2" y="2" height="5" width="23" fill="currentColor"/></svg></span></div>
           </div>
 
         </section>
@@ -110,7 +114,9 @@
             <button type="button" data-select-part="prism" aria-pressed="false" hidden><span>08</span>Prism</button>
             <button type="button" data-select-part="optical-finder" aria-pressed="false" hidden><span>09</span>Optical finder</button>
           </div>
-          <div class="part-detail" aria-live="polite" aria-atomic="true"><div id="part-detail-number" class="detail-number">01</div><div><div class="detail-title-row"><h3 id="part-name">The lens</h3><span class="detail-tag" id="part-function">FOCUS</span></div><p id="part-description">Curved glass bends incoming light to form an image on the sensor. This lab holds focus on the moving amber target.</p><p class="part-connection" id="part-connection">Focus stays fixed here. Change the aperture to explore how much of the scene appears sharp.</p></div></div>          <dl class="control-notes"><div><dt>Aperture</dt><dd>Opening width changes light and depth of field.</dd></div><div><dt>Shutter</dt><dd>Time collecting light changes brightness and motion blur.</dd></div><div><dt>ISO</dt><dd>Brightens the captured signal. It adds no incoming light.</dd></div></dl><dl class="preview-metrics"><div><dt>Motion</dt><dd id="motion-value">Visible trail</dd></div><div><dt>Background</dt><dd id="depth-value">Soft</dd></div><div><dt>Grain</dt><dd id="grain-value">Low</dd></div></dl>
+          <div class="part-detail" aria-live="polite" aria-atomic="true"><div id="part-detail-number" class="detail-number">01</div><div><div class="detail-title-row"><h3 id="part-name">The lens</h3><span class="detail-tag" id="part-function">FOCUS</span></div><p id="part-description">Curved glass bends incoming light to form an image on the sensor. This lab holds focus on the moving amber target.</p><p class="part-connection" id="part-connection">Focus stays fixed here. Change the aperture to explore how much of the scene appears sharp.</p></div></div>          <p id="camera-explanation" class="mechanism-explanation"></p>
+          <p class="mechanism-limitations">Schematic simulation: opening size and the timing bar are exaggerated for learning. The bar is symbolic, not a measured curtain position. This lab shows a representative mechanical capture interval; DSLR maximum-aperture viewing, live view, autofocus, exact curtain travel and brand-specific behavior are not simulated. The simulated photo predicts the captured result independently of the finder.</p>
+          <dl class="control-notes"><div><dt>Aperture</dt><dd>Opening width changes light and depth of field.</dd></div><div><dt>Shutter</dt><dd>Time collecting light changes brightness and motion blur.</dd></div><div><dt>ISO</dt><dd>Brightens the captured signal. It adds no incoming light.</dd></div></dl><dl class="preview-metrics"><div><dt>Motion</dt><dd id="motion-value">Visible trail</dd></div><div><dt>Background</dt><dd id="depth-value">Soft</dd></div><div><dt>Grain</dt><dd id="grain-value">Low</dd></div></dl>
           <p class="preview-caveat">A simulated test target. Brightness, blur, and grain illustrate trade-offs; they are not calibrated camera predictions.</p></section>
       <section class="challenge-panel panel" aria-labelledby="challenge-title">
         <div class="challenge-intro"><p class="eyebrow">PUT IT INTO PRACTICE</p><h2 id="challenge-title">A little light work.</h2><p>Three experiments. More than one solution.</p><div class="challenge-progress"><span id="progress-count">0 / 3</span> EXPERIMENTS COMPLETED<span class="progress-dots" aria-hidden="true"><i></i><i></i><i></i></span></div></div>

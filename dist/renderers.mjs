@@ -2,13 +2,6 @@ import { APERTURES, SHUTTERS, ISOS, CHALLENGES } from './model.mjs';
 import { getCameraConfig } from './camera-config.mjs';
 /** @typedef {import('./state.mjs').Snapshot} Snapshot */
 const optionLists = { aperture: APERTURES, shutter: SHUTTERS, iso: ISOS };
-const parts = {
-  lens: { number: '01', name: 'The lens', tag: 'FOCUS', description: 'Curved glass bends incoming light to form an image on the sensor. This lab holds focus on the moving amber target.', connection: 'Focus stays fixed here. Change the aperture to explore how much of the scene appears sharp.' },
-  aperture: { number: '02', name: 'The aperture', tag: 'OPENING', description: 'Overlapping blades form an adjustable opening in the lens. A lower f-number means a wider opening: more light, with a shallower depth of field.', connection: 'Move the aperture control. Watch the opening change and the distant target soften or sharpen.' },
-  shutter: { number: '03', name: 'The shutter', tag: 'TIME', description: 'The shutter controls how long light reaches the sensor. A short exposure captures less movement; a long exposure lets a moving subject leave a trail.', connection: 'Change the shutter speed. Faster times freeze the target but collect less light. The slit here is symbolic.' },
-  sensor: { number: '04', name: 'The sensor', tag: 'SIGNAL', description: 'A grid of light-sensitive sites converts incoming photons into electrical signals. Those signals become the pixels in a digital image.', connection: 'ISO brightens the captured signal; it adds no photons. Notice how the captured-light readout stays fixed when only ISO changes.' },
-  body: { number: '05', name: 'The camera body', tag: 'STRUCTURE', description: 'The light-tight housing holds the optical system and sensor in alignment. It keeps unwanted light out and supports the controls and electronics.', connection: 'Reassemble the view to see the parts fit together. This is a simplified mirrorless camera, with no mirror or prism.' }
-};
 function formatStops(stops) {
   return `${stops > 0.049 ? '+' : ''}${Math.abs(stops) < 0.05 ? '0.0' : stops.toFixed(1)}`;
 }
@@ -25,7 +18,7 @@ function renderPart(root, snapshot) {
   const $ = selector => root.querySelector(selector);
   const $$ = selector => [...root.querySelectorAll(selector)];
   const metadata = getCameraConfig(state.cameraType).parts[state.selectedPart];
-  const part = {number:String(getCameraConfig(state.cameraType).partIds.indexOf(state.selectedPart)+1).padStart(2,'0'), tag:'COMPONENT', ...parts[state.selectedPart], ...metadata};
+  const part = {number:String(getCameraConfig(state.cameraType).partIds.indexOf(state.selectedPart)+1).padStart(2,'0'), tag:'COMPONENT', ...metadata};
   $('#part-detail-number').textContent = part.number;
   $('#part-name').textContent = part.name;
   $('#part-function').textContent = part.tag;
