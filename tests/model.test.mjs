@@ -84,14 +84,14 @@ test('reset state is fresh and restores every setting and interaction', () => {
   const modified = createInitialState();
   modified.settings.iso = 3200;
   modified.selectedPart = 'sensor';
-  modified.exploded = false;
+  modified.viewMode = 'exploded';
   modified.challengeId = 'depth';
   modified.feedback = { passed: true };
   modified.completed.push('freeze');
   const reset = createInitialState();
   assert.deepEqual(reset.settings, { aperture: 4, shutter: 125, iso: 400 });
   assert.equal(reset.selectedPart, 'lens');
-  assert.equal(reset.exploded, true);
+  assert.equal(reset.viewMode, 'assembled');
   assert.equal(reset.challengeId, 'freeze');
   assert.equal(reset.feedback, null);
   assert.deepEqual(reset.completed, []);

@@ -45,14 +45,15 @@ export function computeExposure(settings) {
   };
 }
 
-export function evaluateChallenge(id, settings) {
+export function evaluateChallenge(id, settings, exposure = computeExposure(settings)) {
   if (!Object.hasOwn(CHALLENGES, id)) throw new RangeError('Unknown challenge');
-  const { stops } = computeExposure(settings);
+  validateSettings(settings);
+  const { stops } = exposure;
   const techniqueMet = id === 'freeze' ? settings.shutter >= 500 : id === 'isolate' ? settings.aperture <= 2.8 : settings.aperture >= 8;
   const brightnessMet = Math.abs(stops) <= 0.5 + Number.EPSILON;
   return { passed: techniqueMet && brightnessMet, techniqueMet, brightnessMet, stops };
 }
 
 export function createInitialState() {
-  return { settings: { ...DEFAULT_SETTINGS }, selectedPart: 'lens', exploded: true, challengeId: 'freeze', feedback: null, completed: [] };
+  return { settings: { ...DEFAULT_SETTINGS }, selectedPart: 'lens', cameraType: 'mirrorless', viewMode: 'assembled', activeControl: 'aperture', exposurePhase: 'viewing', challengeId: 'freeze', feedback: null, completed: [] };
 }

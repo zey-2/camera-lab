@@ -6,8 +6,8 @@
   "description": "An interactive camera cutaway and optical workbench.",
   "scripts": {
     "start": "node server.mjs",
-    "test": "node --test tests/model.test.mjs",
-    "check": "node --check dist/model.mjs && node --check dist/app.mjs && node --check server.mjs"
+    "test": "node --test tests/*.test.mjs",
+    "check": "node --check dist/model.mjs && node --check dist/state.mjs && node --check dist/camera-config.mjs && node --check dist/app.mjs && node --check server.mjs"
   },
   "engines": { "node": ">=20" }
 }
