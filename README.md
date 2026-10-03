@@ -1,5 +1,7 @@
 # Inside Things: Camera Lab
 
+Live site: [Inside Things: Camera Lab](https://inside-things-camera-lab.eight-bits.chatgpt.site/)
+
 A self-contained educational camera workbench, built by an agent from the approved design. Explore a camera cutaway, follow the light, and discover the trade-offs between aperture, shutter speed, and ISO. There is no AI runtime, account, external dependency, or remote service.
 
 ## Run
