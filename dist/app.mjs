@@ -1,4 +1,4 @@
-import { APERTURES, SHUTTERS, ISOS, createInitialState } from './model.mjs';
+import { APERTURES, SHUTTERS, ISOS, CHALLENGES, createInitialState } from './model.mjs';
 import { createSnapshot, transition } from './state.mjs';
 import { renderInterface, createGrain } from './renderers.mjs';
 import { describeCamera, renderCamera } from './camera.mjs';
@@ -42,6 +42,10 @@ function closeHint() {
   $('#challenge-hint').hidden = true;
   $('#hint-toggle').setAttribute('aria-expanded', 'false');
   $('#hint-toggle').textContent = 'Give me a hint';
+}
+function closeDisclosures() {
+  closeHint();
+  $('.reference-disclosure').open = false;
 }
 function setCameraSettings(patch, selectControl) {
   dispatch({type:'set-settings', patch, selectControl});
@@ -95,8 +99,9 @@ reducedMotionQuery.addEventListener('change', () => {
   else if (['phase-viewing','phase-exposure'].includes(focused.id) && !reducedMotionQuery.matches) $('#play-exposure').focus();
 });
 for (const button of $$('[data-challenge]')) button.addEventListener('click', () => {
-  dispatch({type:'choose-challenge', id:button.dataset.challenge});
-  closeHint();
+  const next = dispatch({type:'choose-challenge', id:button.dataset.challenge});
+  closeDisclosures();
+  announce(`${CHALLENGES[next.state.challengeId].title}. ${next.state.activeControl === 'shutter' ? 'Shutter' : 'Aperture'} selected. Camera settings and experiment progress retained.`);
 });
 $('#hint-toggle').addEventListener('click', () => {
   const expanded = $('#hint-toggle').getAttribute('aria-expanded') === 'true';
@@ -110,9 +115,15 @@ $('#check-challenge').addEventListener('click', () => {
 });
 $('#reset').addEventListener('click', () => {
   dispatch({type:'reset-camera'});
-  closeHint();
-  $('.reference-disclosure').open = false;
+  closeDisclosures();
   announce('Camera reset. f/4, 1/125 second, ISO 400. Lens selected, assembled mirrorless view. Experiment progress retained.');
+});
+$('#clear-progress').addEventListener('click', () => {
+  const confirmed = confirm('Clear all earned challenge completions? Camera settings will stay unchanged.');
+  $('#clear-progress').focus();
+  if (!confirmed) return;
+  dispatch({type:'clear-progress', confirmed:true});
+  announce('Experiment progress cleared. Camera settings and current experiment retained.');
 });
 const controlKeys = Object.keys(optionLists);
 for (const tab of $$('[data-control]')) {

@@ -12,7 +12,7 @@ import { getCameraConfig } from './camera-config.mjs';
 /** @typedef {ReturnType<typeof import('./model.mjs').computeExposure>} Exposure */
 /** @typedef {ReturnType<typeof import('./model.mjs').evaluateChallenge>} Evaluation */
 /** @typedef {{state:LabState, exposure:Exposure, challenge:Evaluation}} Snapshot */
-/** @typedef {{type:'set-settings',patch:Partial<Settings>,selectControl?:Control}|{type:'select-part',part:PartId,source:'list'|'diagram'}|{type:'set-type',cameraType:CameraType}|{type:'set-view',viewMode:ViewMode}|{type:'set-phase',phase:Phase}|{type:'set-control',control:Control}|{type:'choose-challenge',id:ChallengeId}|{type:'check-challenge'}|{type:'reset-camera'}} LabAction */
+/** @typedef {{type:'set-settings',patch:Partial<Settings>,selectControl?:Control}|{type:'select-part',part:PartId,source:'list'|'diagram'}|{type:'set-type',cameraType:CameraType}|{type:'set-view',viewMode:ViewMode}|{type:'set-phase',phase:Phase}|{type:'set-control',control:Control}|{type:'choose-challenge',id:ChallengeId}|{type:'check-challenge'}|{type:'reset-camera'}|{type:'clear-progress',confirmed:boolean}} LabAction */
 const controls = ['aperture','shutter','iso'];
 const views = ['assembled','cutaway','exploded'];
 const controlParts = {aperture:'aperture',shutter:'shutter',iso:'sensor'};
@@ -151,6 +151,13 @@ export function transition(current, action) {
     case 'reset-camera':
       state = {...createInitialState(), challengeId:state.challengeId, completed:[...state.completed]};
       exposure = undefined;
+      break;
+    case 'clear-progress':
+      if (typeof action.confirmed !== 'boolean') throw new TypeError('Invalid progress confirmation');
+      if (action.confirmed) {
+        state.completed = [];
+        state.feedback = null;
+      }
       break;
     default:
       throw new RangeError('Unknown action');

@@ -4,6 +4,148 @@ import {createInitialState,computeExposure,evaluateChallenge,APERTURES,SHUTTERS,
 import {createSnapshot,transition} from '../dist/state.mjs';
 import {getCameraConfig} from '../dist/camera-config.mjs';
 const initial=()=>createSnapshot(createInitialState());
+const solutions = {
+  freeze: {aperture:4, shutter:500, iso:1600},
+  isolate: {aperture:2.8, shutter:250, iso:400},
+  depth: {aperture:8, shutter:30, iso:400}
+};
+function completeAll() {
+  let current = initial();
+  for (const [id, patch] of Object.entries(solutions)) {
+    current = transition(current, {type:'choose-challenge', id});
+    current = transition(current, {type:'set-settings', patch});
+    current = transition(current, {type:'check-challenge'});
+  }
+  return current;
+}
+
+test('reset preserves chosen challenge and completions', () => {
+  let completedDepth = completeAll();
+  completedDepth = transition(completedDepth, {type:'set-type', cameraType:'dslr'});
+  completedDepth = transition(completedDepth, {type:'select-part', part:'prism', source:'list'});
+  completedDepth = transition(completedDepth, {type:'set-control', control:'iso'});
+  completedDepth = transition(completedDepth, {type:'set-phase', phase:'exposure'});
+  const reset = transition(completedDepth, {type:'reset-camera'});
+  assert.equal(reset.state.challengeId, 'depth');
+  assert.deepEqual(reset.state.completed, ['freeze','isolate','depth']);
+  assert.deepEqual(reset.state.completed, completedDepth.state.completed);
+  assert.deepEqual(reset.state.settings, {aperture:4, shutter:125, iso:400});
+  assert.equal(reset.state.selectedPart, 'lens');
+  assert.equal(reset.state.activeControl, 'aperture');
+  assert.equal(reset.state.cameraType, 'mirrorless');
+  assert.equal(reset.state.viewMode, 'assembled');
+  assert.equal(reset.state.exposurePhase, 'viewing');
+  assert.equal(reset.state.feedback, null);
+  assert.deepEqual(reset.exposure, computeExposure(reset.state.settings));
+  assert.notStrictEqual(reset.state.completed, completedDepth.state.completed);
+  assert.equal(completedDepth.state.feedback.passed, true);
+});
+
+test('check is idempotent', () => {
+  let current = initial();
+  const earned = [];
+  for (const [id, patch] of Object.entries(solutions)) {
+    current = transition(current, {type:'choose-challenge', id});
+    current = transition(current, {type:'set-settings', patch});
+    const unchecked = current;
+    earned.push(id);
+    for (let count = 0; count < 2; count++) {
+      current = transition(current, {type:'check-challenge'});
+      assert.deepEqual(current.state.completed, earned);
+      assert.deepEqual(current.state.feedback, {...unchecked.challenge, message:current.state.feedback.message});
+      assert.equal(current.state.feedback.passed, true);
+      assert.match(current.state.feedback.message, /Experiment complete.*Try another experiment/);
+      assert.strictEqual(current.exposure, unchecked.exposure);
+    }
+    assert.deepEqual(unchecked.state.completed, earned.slice(0, -1));
+  }
+});
+
+test('clear progress requires confirmation', () => {
+  const earned = completeAll();
+  const before = structuredClone(earned);
+  const cancelled = transition(earned, {type:'clear-progress', confirmed:false});
+  assert.deepEqual(cancelled, before);
+  for (const confirmed of [undefined, null, 'true', 1, {}, []]) {
+    assert.throws(() => transition(earned, {type:'clear-progress', confirmed}), /confirmation/);
+  }
+  const cleared = transition(earned, {type:'clear-progress', confirmed:true});
+  assert.deepEqual(cleared.state, {...earned.state, completed:[], feedback:null});
+  assert.strictEqual(cleared.exposure, earned.exposure);
+  assert.deepEqual(earned, before);
+});
+
+test('confirmed clear preserves camera state including either static phase', () => {
+  for (const cameraType of ['dslr','mirrorless']) for (const exposurePhase of ['viewing','exposure']) {
+    let earned = completeAll();
+    earned = transition(earned, {type:'set-type', cameraType});
+    earned = transition(earned, {type:'set-view', viewMode:'cutaway'});
+    earned = transition(earned, {type:'select-part', part:cameraType === 'dslr' ? 'prism' : 'evf', source:'list'});
+    earned = transition(earned, {type:'set-control', control:'iso'});
+    earned = transition(earned, {type:'set-phase', phase:exposurePhase});
+    const cleared = transition(earned, {type:'clear-progress', confirmed:true});
+    assert.deepEqual(cleared.state, {...earned.state, completed:[], feedback:null});
+    assert.strictEqual(cleared.exposure, earned.exposure);
+    assert.deepEqual(cleared.challenge, earned.challenge);
+  }
+});
+
+test('challenge choice leaves settings unchanged', () => {
+  let current = completeAll();
+  current = transition(current, {type:'set-type', cameraType:'dslr'});
+  current = transition(current, {type:'set-view', viewMode:'cutaway'});
+  current = transition(current, {type:'set-phase', phase:'exposure'});
+  for (const id of Object.keys(solutions)) {
+    const chosen = transition(current, {type:'choose-challenge', id});
+    assert.deepEqual(chosen.state, {...current.state, challengeId:id,
+      selectedPart:id === 'freeze' ? 'shutter' : 'aperture',
+      activeControl:id === 'freeze' ? 'shutter' : 'aperture', feedback:null});
+    assert.strictEqual(chosen.exposure, current.exposure);
+    assert.deepEqual(chosen.challenge, evaluateChallenge(id, current.state.settings, current.exposure));
+  }
+  assert.equal(current.state.feedback.passed, true);
+});
+
+test('each partial goal failure withholds new completion with actionable feedback', () => {
+  const failures = {
+    freeze: [{aperture:4, shutter:125, iso:400}, {aperture:4, shutter:500, iso:400}],
+    isolate: [{aperture:4, shutter:125, iso:400}, {aperture:2.8, shutter:125, iso:400}],
+    depth: [{aperture:4, shutter:125, iso:400}, {aperture:8, shutter:125, iso:400}]
+  };
+  for (const [id, settings] of Object.entries(failures)) for (const [index, patch] of settings.entries()) {
+    let current = transition(initial(), {type:'choose-challenge', id});
+    current = transition(current, {type:'set-settings', patch});
+    const failed = transition(current, {type:'check-challenge'});
+    assert.equal(failed.state.feedback.passed, false);
+    assert.equal(failed.state.feedback.techniqueMet, index === 1);
+    assert.equal(failed.state.feedback.brightnessMet, index === 0);
+    assert.deepEqual(failed.state.completed, []);
+    assert.match(failed.state.feedback.message, index === 0 ? /Next, aim for/ : /within \u00b10\.5 stops using the other settings/);
+  }
+});
+
+test('failed checks and setting edits retain every previously earned completion', () => {
+  const earned = completeAll();
+  for (const id of Object.keys(solutions)) {
+    let changed = transition(earned, {type:'choose-challenge', id});
+    changed = transition(changed, {type:'set-settings', patch:{aperture:4, shutter:125, iso:400}});
+    assert.equal(changed.state.feedback, null);
+    assert.deepEqual(changed.state.completed, earned.state.completed);
+    const failed = transition(changed, {type:'check-challenge'});
+    assert.equal(failed.state.feedback.passed, false);
+    assert.deepEqual(failed.state.completed, earned.state.completed);
+    assert.equal(transition(failed, {type:'set-settings', patch:{iso:800}}).state.feedback, null);
+  }
+});
+
+test('a fresh session starts without achievements or feedback', () => {
+  const earned = completeAll();
+  assert.equal(earned.state.completed.length, 3);
+  const fresh = initial();
+  assert.deepEqual(fresh.state.completed, []);
+  assert.equal(fresh.state.feedback, null);
+  assert.equal(fresh.state.challengeId, 'freeze');
+});
 
 test('public phase action permits exposure only in cutaway', () => {
   const cutaway = transition(initial(), {type:'set-view', viewMode:'cutaway'});

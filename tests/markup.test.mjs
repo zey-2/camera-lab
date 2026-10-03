@@ -3,6 +3,42 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {getCameraConfig} from '../dist/camera-config.mjs';
 
+test('clear progress has a separate native button and announcements use one status region', async () => {
+  const html = await readFile(new URL('../dist/index.html', import.meta.url), 'utf8');
+  assert.match(html, /<button[^>]*id="clear-progress"[^>]*type="button"[^>]*>Clear progress<\/button>/);
+  assert.match(html, /id="reset"[^>]*>Reset camera<\/button>/);
+  assert.doesNotMatch(html, /class="part-detail"[^>]*aria-live/);
+  assert.equal([...html.matchAll(/role="status"/g)].length, 1);
+  assert.doesNotMatch(html, /aria-live=/);
+});
+
+test('rendering absent feedback removes stale check text and success presentation', async () => {
+  const {renderInterface} = await import('../dist/renderers.mjs');
+  const {createSnapshot, transition} = await import('../dist/state.mjs');
+  const {createInitialState} = await import('../dist/model.mjs');
+  const nodes = new Map();
+  const root = {querySelector(selector) {
+    if (!nodes.has(selector)) {
+      const classes = new Set();
+      nodes.set(selector, {style:{setProperty(){}}, classes,
+        classList:{toggle(name, active){if (active) classes.add(name); else classes.delete(name);}},
+        setAttribute(){}});
+    }
+    return nodes.get(selector);
+  }, querySelectorAll(){return [];}};
+  const solution = transition(createSnapshot(createInitialState()), {type:'set-settings', patch:{shutter:500, iso:1600}});
+  const checked = transition(solution, {type:'check-challenge'});
+  renderInterface(root, checked);
+  const feedback = nodes.get('#challenge-feedback');
+  assert.equal(feedback.hidden, false);
+  assert.equal(feedback.textContent, checked.state.feedback.message);
+  assert.equal(feedback.classes.has('success'), true);
+  renderInterface(root, transition(checked, {type:'set-settings', patch:{iso:400}}));
+  assert.equal(feedback.hidden, true);
+  assert.equal(feedback.textContent, '');
+  assert.equal(feedback.classes.has('success'), false);
+});
+
 test('cutaway playback controls show timed or static phase choices and actual shutter', async () => {
   const {renderInterface} = await import('../dist/renderers.mjs');
   const {createSnapshot,transition} = await import('../dist/state.mjs');

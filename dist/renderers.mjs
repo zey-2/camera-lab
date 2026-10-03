@@ -137,10 +137,8 @@ function renderChallenge(root, snapshot) {
   $$('.progress-dots i').forEach((dot, index) => dot.classList.toggle('complete', state.completed.includes(Object.keys(CHALLENGES)[index])));
   const feedback = $('#challenge-feedback');
   feedback.hidden = !state.feedback;
-  if (state.feedback) {
-    feedback.classList.toggle('success', state.feedback.passed);
-    feedback.textContent = state.feedback.message;
-  }
+  feedback.classList.toggle('success', Boolean(state.feedback?.passed));
+  feedback.textContent = state.feedback?.message ?? '';
 }
 
 /** Render all interface surfaces from one snapshot.
