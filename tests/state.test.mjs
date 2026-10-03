@@ -20,3 +20,28 @@ test('snapshot validates state and detaches input',()=>{for(const patch of [{cam
 test('committed snapshots cannot be mutated through read references',()=>{
  const s=initial(); assert.throws(()=>{s.state.settings.iso=800;},TypeError); assert.throws(()=>s.state.completed.push('freeze'),TypeError); assert.throws(()=>{s.exposure.stops=99;},TypeError); assert.throws(()=>{s.challenge.passed=true;},TypeError); assert.throws(()=>{s.state.viewMode='exploded';},TypeError);
 });
+
+test('challenge choice and checks preserve immutable earned progress', () => {
+  const current = initial();
+  const chosen = transition(current, {type:'choose-challenge', id:'isolate'});
+  assert.equal(chosen.state.challengeId, 'isolate');
+  assert.equal(chosen.state.selectedPart, 'aperture');
+  assert.strictEqual(chosen.exposure, current.exposure);
+  const solution = transition(current, {type:'set-settings', patch:{shutter:500,iso:1600}});
+  const checked = transition(solution, {type:'check-challenge'});
+  assert.equal(checked.state.feedback.passed, true);
+  assert.deepEqual(checked.state.completed, ['freeze']);
+  assert.deepEqual(transition(checked, {type:'check-challenge'}).state.completed, ['freeze']);
+  assert.deepEqual(solution.state.completed, []);
+  assert.equal(transition(checked, {type:'choose-challenge',id:'depth'}).state.feedback, null);
+  assert.throws(() => transition(checked, {type:'choose-challenge',id:'invalid'}));
+});
+
+test('choosing a challenge selects its linked control while preserving view', () => {
+  const current = transition(initial(), {type:'set-control',control:'iso'});
+  for (const id of ['freeze','isolate','depth']) {
+    const chosen = transition(current, {type:'choose-challenge',id});
+    assert.equal(chosen.state.activeControl, id === 'freeze' ? 'shutter' : 'aperture');
+    assert.equal(chosen.state.viewMode, current.state.viewMode);
+  }
+});
